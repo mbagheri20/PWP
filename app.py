@@ -11,15 +11,15 @@ app.config['MONGODB_SETTINGS'] = {
 }
 db = MongoEngine(app)
 
-class Material(db.Document):
+class Material(db.Document):    #class for Material
     structure_name = db.StringField(required = True, max_length = 50)
     
     def to_json(self):
         return {"structure name": self.structure_name}
 
 
-class Material_Volume(db.Document):
-    size_a = db.FloatField(required = True)        #or size_a = db.FloatField(0.0001, 20)
+class Material_Volume(db.Document): #class for volume. Size_c is not necessarily needed
+    size_a = db.FloatField(required = True)
     size_b = db.FloatField(required = True)
     size_c = db.FloatField()
 
@@ -30,18 +30,18 @@ class Material_Volume(db.Document):
             return {"size a": self.size_a, "size b": self.size_b}
 
 
-class Material_Other(db.Document):
+class Material_Other(db.Document):  #class for Other
     bonding_length = db.FloatField(required = True)    #between 0.0001-5
     def to_json(self):
         return {"bonding length": self.bonding_length}
 
-class Material_Fermi(db.Document):
+class Material_Fermi(db.Document):  #class for Fermi energy
     fermi = db.FloatField(required = True)      
 
     def to_json(self):
         return {"fermi": self.fermi}  
 
-class Material_Structure_Type(db.Document):
+class Material_Structure_Type(db.Document): #class for structure type and dimension
     structure_type = db.StringField(required = True, max_length = 50)
     dimension_type = db.StringField(required = True, max_length = 64)
 
@@ -53,7 +53,7 @@ class Material_Structure_Type(db.Document):
 def hello_world():
     return 'Hello, World!'
 
-@app.route('/material/', methods=['GET'])
+@app.route('/material/', methods=['GET']) 
 def get_material():
     material = Material.objects().first()
     if not material:
