@@ -63,7 +63,10 @@ def get_material():
 
 @app.route('/material/', methods=['POST'])
 def post_material():
-    record = json.loads(request.data)
+    try:
+        record = json.loads(request.data)
+    except KeyError:
+        return jsonify({'error': 'wrong format'}), 400 
     material = Material(structure_name = record['name'])
     material.save()
     return jsonify(material.to_json())
@@ -79,7 +82,10 @@ def get_material_volume():
 
 @app.route('/material_volume/', methods=['POST'])
 def post_material_volume():
-    record = json.loads(request.data)
+    try:
+        record = json.loads(request.data)
+    except KeyError:
+        return jsonify({'error': 'wrong format'}), 400 
     if 'size c' in record:
         material_volume = Material_Volume(size_a = record['size a'], size_b = record['size b'], size_c = record['size c'])
     else:
@@ -98,7 +104,10 @@ def get_material_other():
 
 @app.route('/material_other/', methods=['POST'])
 def post_material_other():
-    record = json.loads(request.data)
+    try:
+        record = json.loads(request.data)
+    except KeyError:
+        return jsonify({'error': 'wrong format'}), 400 
     material_other = Material_Other(bonding_length = record['bonding length'])
     material_other.save()
     return jsonify(material_other.to_json())
@@ -113,7 +122,10 @@ def get_material_fermi():
 
 @app.route('/material_fermi/', methods=['POST'])
 def post_material_fermi():
-    record = json.loads(request.data)
+    try:
+        record = json.loads(request.data)
+    except KeyError:
+        return jsonify({'error': 'wrong format'}), 400 
     material_fermi = Material_Fermi(fermi = record['fermi'])
     material_fermi.save()
     return jsonify(material_fermi.to_json())
@@ -128,7 +140,10 @@ def get_material_structure_type():
 
 @app.route('/material_structure_type/', methods=['POST'])
 def post_material_structure_type():
-    record = json.loads(request.data)
+    try:
+        record = json.loads(request.data)
+    except KeyError:
+        return jsonify({'error': 'wrong format'}), 400 
     material_structure = Material_Structure_Type(structure_type = record['structure type'], dimension_type = record['dimension type'])
     material_structure.save()
     return jsonify(material_structure.to_json())
