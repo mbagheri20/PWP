@@ -7,9 +7,13 @@
 
 # Database setup
 ## Requirements
-This project requires `Flask`, `mongodb`, `mongodb-tools`,`flask-mongoengine`, `flask-restful`, `requests`,`wheel`,`idna`,`ipython`, `jsonschema` .   
+This project requires `Flask`, `mongo`,`flask-mongoengine`, `flask-restful`, `requests`,`wheel`,`idna`,`ipython`, `jsonschema` .   
 All dependencies can be installed using `pip install` command followed by the name of library, or alternatively execute this command in terminal to install all libraries needed:     
 `pip install -r requirements.txt`
+
+## Creating Database
+
+## Test
 
 for a new container docker desktop
 $ docker run -d -p 27017:27017 --name mongo mongo:4.2  
