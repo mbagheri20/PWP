@@ -5,8 +5,14 @@
 * Student 2. Joni Barsk  Email: joni.barsk@outlook.com
 * Student 3. Lasse Hyyryläinen Email: lasse.hyyrylainen@student.oulu.fi
 
+# Database setup
+## Requirements
+This project requires `Flask`, `mongodb`, `mongodb-tools`,`flask-mongoengine`, `flask-restful`, `requests`,`wheel`,`idna`,`ipython`, `jsonschema` .   
+All dependencies can be installed using `pip install` command followed by the name of library, or alternatively execute this command in terminal to install all libraries needed:     
+`pip install -r requirements.txt`
+
 for a new container docker desktop
 $ docker run -d -p 27017:27017 --name mongo mongo:4.2  
-__Remember to include all required documentation and HOWTOs, including how to create and populate the database, how to run and test the API, the url to the entrypoint and instructions on how to setup and run the client__
+
 
 
