@@ -1,6 +1,7 @@
 import json
 from flask import Flask, request, jsonify
 from flask_mongoengine import MongoEngine
+from mongoengine.errors import ValidationError
 
 
 app = Flask(__name__)
@@ -66,10 +67,13 @@ def post_material():
     try:
         record = json.loads(request.data)
     except KeyError:
-        return jsonify({'error': 'wrong format'}), 400 
-    material = Material(structure_name = record['name'])
-    material.save()
-    return jsonify(material.to_json())
+        return jsonify({'error': 'wrong format'}), 400
+    try:
+        material = Material(structure_name = record['name'])
+        material.save()
+        return jsonify(material.to_json())
+    except ValidationError:
+        return jsonify({'error': 'wrong attribute type'}), 400
 
 
 @app.route('/material_volume/', methods=['GET'])
@@ -86,12 +90,15 @@ def post_material_volume():
         record = json.loads(request.data)
     except KeyError:
         return jsonify({'error': 'wrong format'}), 400 
-    if 'size c' in record:
-        material_volume = Material_Volume(size_a = record['size a'], size_b = record['size b'], size_c = record['size c'])
-    else:
-        material_volume = Material_Volume(size_a = record['size a'], size_b = record['size b'])
-    material_volume.save()
-    return jsonify(material_volume.to_json())
+    try:
+        if 'size c' in record:
+            material_volume = Material_Volume(size_a = record['size a'], size_b = record['size b'], size_c = record['size c'])
+        else:
+            material_volume = Material_Volume(size_a = record['size a'], size_b = record['size b'])
+        material_volume.save()
+        return jsonify(material_volume.to_json())
+    except ValidationError:
+        return jsonify({'error': 'wrong attribute type'}), 400
 
 
 @app.route('/material_other/', methods=['GET'])
@@ -107,10 +114,13 @@ def post_material_other():
     try:
         record = json.loads(request.data)
     except KeyError:
-        return jsonify({'error': 'wrong format'}), 400 
-    material_other = Material_Other(bonding_length = record['bonding length'])
-    material_other.save()
-    return jsonify(material_other.to_json())
+        return jsonify({'error': 'wrong format'}), 400
+    try:
+        material_other = Material_Other(bonding_length = record['bonding length'])
+        material_other.save()
+        return jsonify(material_other.to_json())
+    except ValidationError:
+        return jsonify({'error': 'wrong attribute type'}), 400
 
 @app.route('/material_fermi/', methods=['GET'])
 def get_material_fermi():
@@ -125,10 +135,13 @@ def post_material_fermi():
     try:
         record = json.loads(request.data)
     except KeyError:
-        return jsonify({'error': 'wrong format'}), 400 
-    material_fermi = Material_Fermi(fermi = record['fermi'])
-    material_fermi.save()
-    return jsonify(material_fermi.to_json())
+        return jsonify({'error': 'wrong format'}), 400
+    try:
+        material_fermi = Material_Fermi(fermi = record['fermi'])
+        material_fermi.save()
+        return jsonify(material_fermi.to_json())
+    except ValidationError:
+        return jsonify({'error': 'wrong attribute type'}), 400
 
 @app.route('/material_structure_type/', methods=['GET'])
 def get_material_structure_type():
@@ -144,9 +157,12 @@ def post_material_structure_type():
         record = json.loads(request.data)
     except KeyError:
         return jsonify({'error': 'wrong format'}), 400 
-    material_structure = Material_Structure_Type(structure_type = record['structure type'], dimension_type = record['dimension type'])
-    material_structure.save()
-    return jsonify(material_structure.to_json())
+    try:
+        material_structure = Material_Structure_Type(structure_type = record['structure type'], dimension_type = record['dimension type'])
+        material_structure.save()
+        return jsonify(material_structure.to_json())
+    except ValidationError:
+        return jsonify({'error': 'wrong attribute type'}), 400
 
 if __name__ == "__main__":
     app.run(debug=True)
