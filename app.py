@@ -1,6 +1,8 @@
 import json
 from flask import Flask, request, jsonify
 from flask_mongoengine import MongoEngine
+from mongoengine.errors import ValidationError
+from mongoengine.fields import ListField, ReferenceField
 
 
 app = Flask(__name__)
@@ -14,6 +16,15 @@ db = MongoEngine(app)
 class Material(db.Document):    #class for Material
     structure_name = db.StringField(required = True, max_length = 50)
     
+    def __unicode__(self):
+        return self.name
+
+    def __repr__(self):
+        return self.name
+
+    def __str__(self):
+        return self.name
+    
     def to_json(self):
         return {"structure name": self.structure_name}
 
@@ -22,12 +33,13 @@ class Material_Volume(db.Document): #class for volume. Size_c is not necessarily
     size_a = db.FloatField(required = True)
     size_b = db.FloatField(required = True)
     size_c = db.FloatField()
-
+    material = ReferenceField(Material, required=True)
+    
     def to_json(self):
         if self.size_c:
-            return {"size a": self.size_a, "size b": self.size_b, "size c": self.size_c}
+            return {"size a": self.size_a, "size b": self.size_b, "size c": self.size_c, "material": self.material.structure_namel}
         else:
-            return {"size a": self.size_a, "size b": self.size_b}
+            return {"size a": self.size_a, "size b": self.size_b, "material": self.material.structure_name}
 
 
 class Material_Other(db.Document):  #class for Other
@@ -74,11 +86,14 @@ def post_material():
 
 @app.route('/material_volume/', methods=['GET'])
 def get_material_volume():
-    material_volume = Material_Volume.objects().first()
+    material_volume = Material_Volume.objects().all()
     if not material_volume:
         return jsonify({'error': 'data not found'}), 403
     else:
-        return jsonify(material_volume.to_json()), 200
+        obj = []
+        for each in material_volume:
+            obj.append(each)
+        return jsonify(obj), 200
 
 @app.route('/material_volume/', methods=['POST'])
 def post_material_volume():
@@ -87,9 +102,9 @@ def post_material_volume():
     except KeyError:
         return jsonify({'error': 'wrong format'}), 400 
     if 'size c' in record:
-        material_volume = Material_Volume(size_a = record['size a'], size_b = record['size b'], size_c = record['size c'])
+        material_volume = Material_Volume(size_a = record['size a'], size_b = record['size b'], size_c = record['size c'], material = record['material'])
     else:
-        material_volume = Material_Volume(size_a = record['size a'], size_b = record['size b'])
+        material_volume = Material_Volume(size_a = record['size a'], size_b = record['size b'], material = record['material'])
     material_volume.save()
     return jsonify(material_volume.to_json())
 
@@ -107,7 +122,9 @@ def post_material_other():
     try:
         record = json.loads(request.data)
     except KeyError:
-        return jsonify({'error': 'wrong format'}), 400 
+        return jsonify({'error': 'wrong format'}), 400
+    except ValidationError as e:
+        print(str(e))
     material_other = Material_Other(bonding_length = record['bonding length'])
     material_other.save()
     return jsonify(material_other.to_json())
