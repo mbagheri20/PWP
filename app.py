@@ -13,7 +13,6 @@ db = MongoEngine(app)
 
 class Material(db.Document):    #class for Material
     structure_name = db.StringField(required = True, unique = True, max_length = 50)
-    # material = db.ListField(db.ReferenceField('Material_Volume'))
 
     def to_json(self):
         return {"structure name": self.structure_name}
@@ -29,7 +28,7 @@ class Material_Volume(db.Document): #class for volume. Size_c is not necessarily
         if self.size_c:
             return {"size a": self.size_a, "size b": self.size_b, "size c": self.size_c, "material": self.material}
         else:
-            return {"size a": self.size_a, "size b": self.size_b, "material": self.material }#"material": db.Material.find({"structure_name": self.material.structure_name}) 
+            return {"size a": self.size_a, "size b": self.size_b, "material": self.material }
 
 
 class Material_Other(db.Document):  #class for Other
@@ -146,8 +145,8 @@ def post_material_fermi():
     try:
         record = json.loads(request.data)
         material = Material.objects(structure_name=record['material']).first()
-        volume = Material_Volume.objects(material = material).first()
-        structure_type = Material_Structure_Type.objects(material = material).first()
+        volume = Material_Volume.objects(id = record['volume']).first()
+        structure_type = Material_Structure_Type.objects(id = record['structure_type']).first()
     except KeyError:
         return jsonify({'error': 'wrong format'}), 400
     try:
