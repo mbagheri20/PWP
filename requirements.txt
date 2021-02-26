@@ -6,5 +6,6 @@ ipython-genutils==0.2.0
 jsonschema==3.0.1
 requests==2.21.0
 mongo
+mongo-tools
 wheel
 flask-mongoengine
