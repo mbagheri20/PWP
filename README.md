@@ -23,15 +23,23 @@ after installation run the app.py with Flask with this command:
 
 `flask app.py`
 
-for a new container docker desktop:
+for a new container install docker desktop:
+https://www.docker.com/products/docker-desktop
+Then create a new mongo container. 
 
 `$ docker run -d -p 27017:27017 --name mongo mongo:4.2`
-`mongodump.exe -d db`
+
+Download mongodb database tools from 
+https://www.mongodb.com/try/download/database-tools
+with following command: you can populate the database. (make sure you have mongo docker container running)
+
 `mongorestore.exe -d db --drop c:{path to repository}\PWP-2021-MJL\tests\mongodump\db`
 
+To backup a ready database you can use.
+`mongodump.exe -d db`
 
 ## Testing Datbase
-After setting up database now you can test database, the file app.test.py contains the test cases for database testing. Test cases can be executed by typing python command (assuming that you are at app.test directory).
+After setting up database now you can test database, the file app.test.py contains the test cases for database testing. Test cases can be executed by typing python command
 
 `python app.test.py`
 
