@@ -11,14 +11,15 @@ app.config['MONGODB_SETTINGS'] = {
 }
 db = MongoEngine(app)
 
-class Material(db.Document):    #class for Material
+class Material(db.Document): #class for Material
+    id = db.ObjectIdField(db_field = '_id')
     structure_name = db.StringField(required = True, unique = True, max_length = 50)
 
     def to_json(self):
-        return {"structure name": self.structure_name}
-
+        return {"id": str(self.id), "structure name": self.structure_name}
 
 class Material_Volume(db.Document): #class for volume. Size_c is not necessarily needed
+    id = db.ObjectIdField(db_field = '_id')
     size_a = db.FloatField(required = True)
     size_b = db.FloatField(required = True)
     size_c = db.FloatField()
@@ -26,46 +27,51 @@ class Material_Volume(db.Document): #class for volume. Size_c is not necessarily
     
     def to_json(self):
         if self.size_c:
-            return {"size a": self.size_a, "size b": self.size_b, "size c": self.size_c, "material": self.material}
+            return {"id": str(self.id), "size a": self.size_a, "size b": self.size_b, "size c": self.size_c, "material": self.material.to_json()}
         else:
-            return {"size a": self.size_a, "size b": self.size_b, "material": self.material }
-
+            return {"id": str(self.id), "size a": self.size_a, "size b": self.size_b, "material": self.material.to_json() }
 
 class Material_Other(db.Document):  #class for Other
+    id = db.ObjectIdField(db_field = '_id')
     bonding_length = db.FloatField(required = True)    #between 0.0001-5
     material = db.ReferenceField('Material', required=True)
     def to_json(self):
-        return {"bonding length": self.bonding_length, "material": self.material}
+        return {"id": str(self.id), "bonding length": self.bonding_length, "material": self.material.to_json()}
 
 class Material_Fermi(db.Document):  #class for Fermi energy
+    id = db.ObjectIdField(db_field = '_id')
     fermi = db.FloatField(required = True)
     material = db.ReferenceField('Material', required=True)
     structure_type = db.ReferenceField('Material_Structure_Type', required=True)
     volume = db.ReferenceField('Material_Volume', required=True)      
 
     def to_json(self):
-        return {"fermi": self.fermi, "material": self.material, "volume": self.volume, "structure type": self.structure_type}  
+        return {"id": str(self.id), "fermi": self.fermi, "material": self.material.to_json(), "volume": self.volume.to_json(), "structure type": self.structure_type.to_json()}  
 
 class Material_Structure_Type(db.Document): #class for structure type and dimension
+    id = db.ObjectIdField(db_field = '_id')
     structure_type = db.StringField(required = True, max_length = 50)
     dimension_type = db.StringField(required = True, max_length = 64)
     material = db.ReferenceField('Material', required=True)
 
     def to_json(self):
-        return {"structure type": self.structure_type, "dimension type": self.dimension_type, "material": self.material}
+        return {"id": str(self.id), "structure type": self.structure_type, "dimension type": self.dimension_type, "material": self.material.to_json()}
 
 
 @app.route('/')
-def hello_world():
-    return 'Hello, World!'
+def home():
+    return "Hello World!"
 
 @app.route('/material/', methods=['GET']) 
 def get_material():
-    material = Material.objects().first()
+    material = Material.objects().all()
     if not material:
         return jsonify({'error': 'data not found'}), 403
     else:
-        return jsonify(material.to_json()), 200
+        obj = []
+        for each in material:
+            obj.append(each.to_json())
+        return jsonify(obj), 200
 
 @app.route('/material/', methods=['POST'])
 def post_material():
@@ -112,7 +118,7 @@ def post_material_volume():
 
 @app.route('/material_other/', methods=['GET'])
 def get_material_other():
-    material_other = Material_Other.objects().first()
+    material_other = Material_Other.objects().all()
     if not material_other:
         return jsonify({'error': 'data not found'}), 403
     else:
@@ -134,11 +140,14 @@ def post_material_other():
 
 @app.route('/material_fermi/', methods=['GET'])
 def get_material_fermi():
-    material_fermi = Material_Fermi.objects().first()
+    material_fermi = Material_Fermi.objects().all()
     if not material_fermi:
         return jsonify({'error': 'data not found'}), 403
     else:
-        return jsonify(material_fermi.to_json()), 200
+        obj = []
+        for each in material_fermi:
+            obj.append(each.to_json())
+        return jsonify(obj), 200
 
 @app.route('/material_fermi/', methods=['POST'])
 def post_material_fermi():
@@ -178,5 +187,5 @@ def post_material_structure_type():
     except ValidationError:
         return jsonify({'error': 'wrong attribute type'}), 400
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(debug=True)
