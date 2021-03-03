@@ -17,14 +17,19 @@ In related work section we should classify the type of the API and justify the c
 *ONLY USED BY COURSE STAFF: Additional comments from the course staff*
 
 ## Meeting 2.
-* **DATE:**
-* **ASSISTANTS:**
+* **DATE:** 3.3.2021
+* **ASSISTANTS:** Mika Oja
 
 ### Minutes
-*Summary of what was discussed during the meeting*
+The diagram for the database design should have arrows so it's easier to follow different foreign keys.
+Fermi energy table should have foreign keys instead of most primary keys.
+Database testing should be expanded.
 
 ### Action points
-*List here the actions points discussed with assistants*
+Expand database testing.
+Rework the database diagram.
+Remove headers from the tables.
+Fix the fermi table.
 
 
 ### Comments from staff
