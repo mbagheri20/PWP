@@ -80,7 +80,7 @@ class MaterialCollection(Resource):
             obj = []
             for each in material:
                 obj.append(each.to_json())
-            return obj, 201
+            return obj, 201 
     
     def post(self):
         try:
@@ -91,14 +91,14 @@ class MaterialCollection(Resource):
             if Material.objects(structure_name = record['name']).first() is None:
                 material = Material(structure_name = record['name'])
                 material.save()
-                return '', 201
+                return Response(status=201)
             abort(409)
         except ValidationError:
             return {'error': 'wrong attribute types'}, 400
 
 class MaterialEntry(Resource):
 
-    def get(self):
+    def get(self, handle):
         return Response(status=501)
 
 class OtherMaterialCollection(Resource):
@@ -132,6 +132,11 @@ class OtherMaterialCollection(Resource):
                 return {'error': 'wrong attribute type'}, 400
         return {'error': 'entry not found'}, 400
 
+class OtherMaterialEntry(Resource):
+
+    def get(self, handle):
+        return Response(status=501)
+
 class MaterialVolumeCollection(Resource):
     def get(self):
         material_volume = Material_Volume.objects().all()
@@ -159,6 +164,11 @@ class MaterialVolumeCollection(Resource):
             return material_volume.to_json()
         except ValidationError:
             return {'error': 'wrong attribute type'}, 400
+
+class MaterialVolumeEntry(Resource):
+
+    def get(self, handle):
+        return Response(status=501)
 
 class MaterialFermiCollection(Resource):
     def get(self):
@@ -188,6 +198,11 @@ class MaterialFermiCollection(Resource):
         except ValidationError:
             return {'error': 'wrong attribute type'}, 400       
 
+class MaterialFermiEntry(Resource):
+
+    def get(self, handle):
+        return Response(status=501)
+
 class MaterialStructureCollection(Resource):
     def get(self):
         material_structure = Material_Structure_Type.objects().all()
@@ -209,15 +224,25 @@ class MaterialStructureCollection(Resource):
             material_structure.save()
             return material_structure.to_json()
         except ValidationError:
-            return {'error': 'wrong attribute type'}, 400        
+            return {'error': 'wrong attribute type'}, 400
+ 
+class MaterialStructureEntry(Resource):
 
+    def get(self, handle):
+        return Response(status=501)
 
+# Collections
 api.add_resource(MaterialCollection, "/api/material/")
-api.add_resource(MaterialEntry, "/api/material/<handle>/")
 api.add_resource(OtherMaterialCollection, "/api/material_other/")
 api.add_resource(MaterialVolumeCollection, "/api/material_volume/")
 api.add_resource(MaterialFermiCollection, "/api/material_fermi/")
 api.add_resource(MaterialStructureCollection, "/api/material_structure/")
+# Entries
+api.add_resource(MaterialEntry, "/api/material/<handle>/")
+api.add_resource(OtherMaterialEntry, "/api/material_other/<handle>/")
+api.add_resource(MaterialVolumeEntry, "/api/material_volume/<handle>/")
+api.add_resource(MaterialFermiEntry, "/api/material_fermi/<handle>/")
+api.add_resource(MaterialStructureEntry, "/api/material_structure/<handle>/")
 
 
 if __name__ == '__main__':
