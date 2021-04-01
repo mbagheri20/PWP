@@ -63,7 +63,7 @@ class MaterialCollection(Resource):
             obj = []
             for each in material:
                 obj.append(each.to_json())
-            return obj, 201 
+            return obj, 200 
     
     def post(self):
         try:
@@ -74,7 +74,8 @@ class MaterialCollection(Resource):
             if Material.objects(structure_name = record['name']).first() is None:
                 material = Material(structure_name = record['name'])
                 material.save()
-                return Response(status=201)
+                loc = api.url_for(MaterialEntry, structure_name=material.structure_name)
+                return Response(status=201, headers={"Location": loc})
             abort(409)
         except ValidationError:
             return {'error': 'wrong attribute types'}, 400
@@ -82,7 +83,44 @@ class MaterialCollection(Resource):
 class MaterialEntry(Resource):
 
     def get(self, handle):
-        return Response(status=501)
+        try:
+            record = json.loads(request.data)
+        except KeyError:
+            return {'error': 'wrong format'}, 400
+        material = Material.objects(structure_name=record['handle']).first()
+        if not material:
+            return {'error': 'data not found'}, 403
+        else:
+            return material, 200 
+
+    def put(self, handle):
+        try:
+            record = json.loads(request.data)
+        except KeyError:
+            return {'error': 'wrong format'}, 400
+        
+        material = Material.objects(structure_name=record['handle']).first()
+        if not material:
+            return {'error': 'data not found'}, 403
+        else:
+            material.structure_name = record['handle']
+            material.save()
+            return Response(status=204)
+        
+
+
+    def delete(self, handle):
+        try:
+            record = json.loads(request.data)
+        except KeyError:
+            return {'error': 'wrong format'}, 400
+        
+        material = Material.objects(structure_name=record['handle']).first()
+        if not material:
+            return {'error': 'data not found'}, 403
+        else:            
+            material.delete()
+            return Response(status=201)
 
 class MaterialVolumeCollection(Resource):
     def get(self):
@@ -121,14 +159,62 @@ class MaterialVolumeCollection(Resource):
                         material = material.id
                     )
             material_volume.save()
-            return material_volume.to_json()
+            loc = api.url_for(MaterialVolumeEntry, id=material_volume.id)
+            return Response(status=201, headers={"Location": loc})
         except ValidationError:
             return {'error': 'wrong attribute type'}, 400
 
 class MaterialVolumeEntry(Resource):
 
     def get(self, handle):
-        return Response(status=501)
+        try:
+            record = json.loads(request.data)
+        except KeyError:
+            return {'error': 'wrong format'}, 400
+        material_volume = Material_Volume.objects(id=record['id']).first()
+        if not material_volume:
+            return {'error': 'data not found'}, 403
+        else:
+            return material_volume, 200
+
+    def put(self, handle):
+        try:
+            record = json.loads(request.data)
+            material_volume = Material_Volume.objects(id=record['id']).first()
+        except KeyError:
+
+            return {'error': 'wrong format'}, 400 
+        try:
+            if 'size c' in record:
+                material_volume.size_a = record['size a']
+                material_volume.size_b = record['size b']
+                material_volume.size_c = record['size c']
+                material_volume.dimension_type = record['dimension type']
+                material_volume.bonding_length = record['bonding length']
+            else:
+                material_volume.size_a = record['size a']
+                material_volume.size_b = record['size b']
+                material_volume.size_c = record['size c']
+                material_volume.dimension_type = record['dimension type']
+                material_volume.bonding_length = record['bonding length']
+            material_volume.save()
+            return Response(status=204)
+        except ValidationError:
+            return {'error': 'wrong attribute type'}, 400
+
+    
+    def delete(self, handle):
+        try:
+            record = json.loads(request.data)
+        except KeyError:
+            return {'error': 'wrong format'}, 400
+
+        material_volume = Material_Volume.objects(id=record['id']).first()
+        if not material_volume:
+            return {'error': 'data not found'}, 403
+        else:            
+            material_volume.delete()
+            return Response(status=201)
 
 class MaterialFermiCollection(Resource):
     def get(self):
@@ -144,7 +230,7 @@ class MaterialFermiCollection(Resource):
     def post(self):
         try:
             record = json.loads(request.data)
-            material = Material.objects(structure_name=record['material']).first()
+            material = Material.objects(structure_name = record['material']).first()
             volume = Material_Volume.objects(id = record['volume']).first()
         except KeyError:
             return {'error': 'wrong format'}, 400
@@ -152,7 +238,8 @@ class MaterialFermiCollection(Resource):
             if material is not None and volume is not None:
                 material_fermi = Material_Fermi(fermi = record['fermi'], material = material.id, volume = volume.id)
                 material_fermi.save()
-                return '', 201
+                loc = api.url_for(MaterialFermiEntry, id=material_fermi.id)
+                return Response(status=201, headers={"Location": loc})
             return {'error': 'duplicate value'}, 409
         except ValidationError:
             return {'error': 'wrong attribute type'}, 400       
@@ -160,7 +247,42 @@ class MaterialFermiCollection(Resource):
 class MaterialFermiEntry(Resource):
 
     def get(self, handle):
-        return Response(status=501)
+        try:
+            record = json.loads(request.data)
+        except KeyError:
+            return {'error': 'wrong format'}, 400
+        material_fermi = Material_Fermi.objects(id = record['id']).first()
+        if not material_fermi:
+            return {'error': 'data not found'}, 403
+        else:
+            return material_fermi, 200
+
+    def put(self, id):
+        try:
+            record = json.loads(request.data)
+            material_fermi = Material_Fermi.objects(id=record['id']).first()
+        except KeyError:
+            return {'error': 'wrong format'}, 400
+        try:
+            if not material_fermi:
+                material_fermi.fermi = record['fermi']
+                return Response(status=204)
+            return {'error': 'duplicate value'}, 409
+        except ValidationError:
+            return {'error': 'wrong attribute type'}, 400       
+    
+    def delete(self, handle):
+        try:
+            record = json.loads(request.data)
+        except KeyError:
+            return {'error': 'wrong format'}, 400
+
+        material_fermi = Material_Fermi.objects(id=record['id']).first()
+        if not material_fermi:
+            return {'error': 'data not found'}, 403
+        else:            
+            material_fermi.delete()
+            return Response(status=201)
 
 # Collections
 api.add_resource(MaterialCollection, "/api/material/")
