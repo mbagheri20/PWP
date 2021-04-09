@@ -1,10 +1,50 @@
 # PWP SPRING 2021
-# PROJECT NAME
+# Material Database
 # Group information
-* Student 1. Name and email
-* Student 2. Name and email
-* Student 3. Name and email
+* Student 1. Mohammad Bagheri Email: mohammad.bagheri@oulu.fi
+* Student 2. Joni Barsk  Email: joni.barsk@outlook.com
+* Student 3. Lasse Hyyryläinen Email: lasse.hyyrylainen@student.oulu.fi
 
-__Remember to include all required documentation and HOWTOs, including how to create and populate the database, how to run and test the API, the url to the entrypoint and instructions on how to setup and run the client__
+# Database setup
+## Requirements and Creating Database
+This project requires `Flask`, `mongo`,`mongo-tools`,`flask-mongoengine`, `flask-restful`, `requests`,`wheel`,`idna`,`ipython`, `jsonschema` . 
+
+We highly recommend to use a python virtual enviroment for instaling the requirements. to do this you can use this command:
+
+`python3 -m venv mat-env`
+then you should activate your virtual enviroment with following command:
+
+`source Install_Dir/mat-env/bin/activate`
+All dependencies can be installed using `pip install` command followed by the name of library, or alternatively execute this command in terminal to install all libraries needed: 
+
+`pip install -r requirements.txt`
+
+after installation run the app.py with Flask with this command:
+
+`flask app.py`
+
+for a new container install docker desktop:
+https://www.docker.com/products/docker-desktop
+Then create a new mongo container. 
+
+`$ docker run -d -p 27017:27017 --name mongo mongo:4.2`
+
+Download mongodb database tools from 
+https://www.mongodb.com/try/download/database-tools
+with following command: you can populate the database. (make sure you have mongo docker container running)
+
+`mongorestore.exe -d db --drop c:{path to repository}\PWP-2021-MJL\tests\mongodump\db`
+
+To backup a ready database you can use.
+`mongodump.exe -d db`
+
+## Testing Datbase
+After setting up database now you can test database, the file app.test.py contains the test cases for database testing. Test cases can be executed by typing python command
+
+`python app.test.py`
+
+After executing that command you can check all details in command window about test cases.
+
+
 
 

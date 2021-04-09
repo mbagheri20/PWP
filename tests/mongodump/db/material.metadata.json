@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_","ns":"db.material"},{"v":{"$numberInt":"2"},"unique":true,"key":{"structure_name":{"$numberInt":"1"}},"name":"structure_name_1","ns":"db.material","background":false,"sparse":false}],"uuid":"c2ca8de09550486e9229e811d76f9561","collectionName":"material"}

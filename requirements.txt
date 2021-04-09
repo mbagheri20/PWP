@@ -1,0 +1,11 @@
+Flask==1.1.2
+Flask-RESTful==0.3.7
+idna==2.8
+ipython==7.4.0
+ipython-genutils==0.2.0
+jsonschema==3.0.1
+requests==2.21.0
+mongo
+mongo-tools
+wheel
+flask-mongoengine
