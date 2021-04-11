@@ -15,6 +15,86 @@ app.config['MONGODB_SETTINGS'] = {
 }
 db = MongoEngine(app)
 
+
+LINK_RELATIONS_URL = "/material/link-relations/"
+MATERIAL_PROFILE = "/profiles/material/"
+MATERIAL_VOLUME_PROFILE = "/profiles/material_volume/"
+MATERIAL_FERMI_PROFILE = "/profiles/material_fermi/"
+ERROR_PROFILE = "/material/errors/"
+MASON = "application/vnd.mason+json"
+
+class MasonBuilder(dict):
+    """
+    A convenience class for managing dictionaries that represent Mason
+    objects. It provides nice shorthands for inserting some of the more
+    elements into the object but mostly is just a parent for the much more
+    useful subclass defined next. This class is generic in the sense that it
+    does not contain any application specific implementation details.
+    """
+
+    def add_error(self, title, details):
+        """
+        Adds an error element to the object. Should only be used for the root
+        object, and only in error scenarios.
+
+        Note: Mason allows more than one string in the @messages property (it's
+        in fact an array). However we are being lazy and supporting just one
+        message.
+
+        : param str title: Short title for the error
+        : param str details: Longer human-readable description
+        """
+
+        self["@error"] = {
+            "@message": title,
+            "@messages": [details],
+        }
+
+    def add_namespace(self, ns, uri):
+        """
+        Adds a namespace element to the object. A namespace defines where our
+        link relations are coming from. The URI can be an address where
+        developers can find information about our link relations.
+
+        : param str ns: the namespace prefix
+        : param str uri: the identifier URI of the namespace
+        """
+
+        if "@namespaces" not in self:
+            self["@namespaces"] = {}
+
+        self["@namespaces"][ns] = {
+            "name": uri
+        }
+
+    def add_control(self, ctrl_name, href, **kwargs):
+        """
+        Adds a control property to an object. Also adds the @controls property
+        if it doesn't exist on the object yet. Technically only certain
+        properties are allowed for kwargs but again we're being lazy and don't
+        perform any checking.
+
+        The allowed properties can be found from here
+        https://github.com/JornWildt/Mason/blob/master/Documentation/Mason-draft-2.md
+
+        : param str ctrl_name: name of the control (including namespace if any)
+        : param str href: target URI for the control
+        """
+
+        if "@controls" not in self:
+            self["@controls"] = {}
+
+        self["@controls"][ctrl_name] = kwargs
+        self["@controls"][ctrl_name]["href"] = href
+
+def create_error_response(status_code, title, message=None):
+    resource_url = request.path
+    body = MasonBuilder(resource_url=resource_url)
+    body.add_error(title, message)
+    body.add_control("profile", href=ERROR_PROFILE)
+    return Response(json.dumps(body), status_code, mimetype=MASON)
+
+
 class Material(db.Document): #class for Material
     id = db.ObjectIdField(db_field = '_id')
     structure_name = db.StringField(required = True, unique = True, max_length = 50)
@@ -50,7 +130,23 @@ class Material_Fermi(db.Document):  #class for Fermi energy
 
 @app.route('/')
 def home():
-    return "Hello World!"
+    return "Try /api/"
+
+@app.route("/api/")
+def entrypoint():
+    body = {
+        }
+    body["@namespaces"] = {
+        "matdb": {"name": LINK_RELATIONS_URL}
+    }
+    body["@controls"] = {
+        "matdb:material-all":{
+            "href": "/api/material/",
+            "method": "GET",
+            "title": "Get all products"
+        }
+     }
+    return Response(json.dumps(body), status = 200)
 
 class MaterialCollection(Resource):
 
@@ -59,10 +155,18 @@ class MaterialCollection(Resource):
         if not material:
             return {'error': 'data not found'}, 403
         else:
-            obj = []
+            body = MaterialBuilder()
+            body.add_namespace("matdb", LINK_RELATIONS_URL)
+            body.add_control("self", api.url_for(MaterialCollection))
+            body.add_control_all_material()
+            body.add_control_add_material()
+            body["items"] = []
             for each in material:
-                obj.append(each.to_json())
-            return obj, 200 
+                item = MaterialBuilder(structure_name = each.structure_name)
+                item.add_control("self", api.url_for(MaterialEntry, structure_name = each.structure_name))
+                item.add_control("profile", MATERIAL_PROFILE)
+                body["items"].append(item)
+            return Response(json.dumps(body), 200, mimetype="application/vnd.mason+json") 
     
     def post(self):
         try:
@@ -119,10 +223,23 @@ class MaterialVolumeCollection(Resource):
         if not material_volume:
             return {'error': 'data not found'}, 403
         else:
-            obj = []
-            for each in material_volume:
-                obj.append(each.to_json())
-            return obj, 200
+            body = MaterialVolumeBuilder()
+            body.add_namespace("matdb", LINK_RELATIONS_URL)
+            body.add_control("self", api.url_for(MaterialVolumeCollection))
+            body.add_control_all_material_volume()
+            body.add_control_add_material_volume()
+            body["items"] = []                  #Do we need a control for material?
+            for each in material_volume:        #If needs to be added to check for size c
+                if not each.size_c:
+                    item = MaterialVolumeBuilder(size_a = each.size_a, size_b = each.size_b, bonding_length = each.bonding_length, dimension_type = each.dimension_type, material = each.material.id) #is the each.material.id correct?
+                else:
+                    item = MaterialVolumeBuilder(size_a = each.size_a, size_b = each.size_b, size_c = each.size_c, bonding_length = each.bonding_length, dimension_type = each.dimension_type, material = each.material.id) #is the each.material.id correct?
+                item.add_control("self", api.url_for(MaterialVolumeEntry, id = each.id))
+                item.add_control("profile", MATERIAL_VOLUME_PROFILE)
+                item.add_control("ref_material", api.url_for(MaterialEntry, id = each.material.id))
+                body["items"].append(item)
+            return Response(json.dumps(body), 200, mimetype="application/vnd.mason+json") 
+    
     
     def post(self):
         try:
@@ -200,10 +317,21 @@ class MaterialFermiCollection(Resource):
         if not material_fermi:
             return {'error': 'data not found'}, 403
         else:
-            obj = []
+            body = MaterialFermiBuilder()
+            body.add_namespace("matdb", LINK_RELATIONS_URL)
+            body.add_control("self", api.url_for(MaterialFermiCollection))
+            body.add_control_all_material_fermi()
+            body.add_control_add_material_fermi()   #Do we need a control material and volume
+            body["items"] = []
             for each in material_fermi:
-                obj.append(each.to_json())
-            return obj, 200
+                item = MaterialFermiBuilder(fermi = each.fermi, material = each.material.id, volume = each.volume.id) #is the each.material.id correct?
+                item.add_control("self", api.url_for(MaterialFermiEntry, id = each.id))
+                item.add_control("profile", MATERIAL_FERMI_PROFILE)
+                item.add_control("ref_material", api.url_for(MaterialEntry, id = each.material.id))
+                item.add_control("ref_volume", api.url_for(MaterialEntry, id = each.volume.id))                
+                body["items"].append(item)
+            return Response(json.dumps(body), 200, mimetype="application/vnd.mason+json") 
+    
    
     def post(self):
         try:
@@ -267,6 +395,179 @@ api.add_resource(MaterialFermiCollection, "/api/material_fermi/")
 api.add_resource(MaterialEntry, "/api/material/<handle>/")
 api.add_resource(MaterialVolumeEntry, "/api/material_volume/<id>/")
 api.add_resource(MaterialFermiEntry, "/api/material_fermi/<id>/")
+
+class MaterialBuilder(MasonBuilder):
+    @staticmethod
+    def material_schema():
+        schema = {
+            "type": "object",
+            "required": ["structure_name"]
+        }
+        props = schema["properties"] = {}
+        props["structure_name"] = {
+            "description": "Material's structure name",
+            "type": "string"
+        }
+        return schema
+    
+    def add_control_all_material(self):
+        self.add_control(
+            "matdb:material-all",
+            href = "/api/material/",
+            method = "GET",
+            title = "Get all material objects"
+        )
+    def add_control_delete_material(self, handle):
+        self.add_control(
+            "matdb:delete",
+            href = "/api/material/" + handle + "/",
+            method = "DELETE",
+            title = "Delete this resource"
+        )
+
+    def add_control_add_material(self):
+        self.add_control(
+            "matdb:add-material",
+            href = "/api/material/",
+            method="POST",
+            encoding="json",
+            title="Add a new material",
+            schema=self.material_schema()
+
+        )
+    def add_control_edit_material(self, handle):
+        self.add_control(
+            "edit",
+            href = "/api/material/" + handle + "/",
+            method = "PUT",
+            encoding = "json",
+            schema=self.material_schema()
+        )
+
+
+class MaterialVolumeBuilder(MasonBuilder):
+    @staticmethod
+    def material_volume_schema():
+        schema = {
+            "type": "object",
+            "required": ["size_a", "size_b", "bonding_length", "dimension_type", "material"]
+        }
+        props = schema["properties"] = {}
+        props["size_a"] = {
+            "description": "Material's first size measurement",
+            "type": "number"
+        }
+        props["size_b"] = {
+            "description": "Material's second size measurement",
+            "type": "number"
+        }
+        props["size_c"] = {
+            "description": "Material's third size measurement",
+            "type": "number"
+        }
+        props["bonding_length"] = {
+            "description": "Material's bonding length",
+            "type": "number"
+        }
+        props["dimension_type"] = {
+            "description": "Material's dimension",
+            "type": "string"
+        }
+        props["material"] = {
+            "description": "Material for reference",
+            "type": "string"
+        }
+        return schema
+    
+    def add_control_all_material_volume(self):
+        self.add_control(
+            "matdb:material_volume-all",
+            href = "/api/material_volume/",
+            method = "GET",
+            title = "Get all material volume objects"
+        )
+    def add_control_delete_material_volume(self, id):
+        self.add_control(
+            "matdb:delete_material_volume",
+            href = "/api/material_volume/" + id + "/",
+            method = "DELETE",
+            title = "Delete this resource"
+        )
+
+    def add_control_add_material_volume(self):
+        self.add_control(
+            "matdb:add_material_volume",
+            href = "/api/material_volume/",
+            method="POST",
+            encoding="json",
+            title="Add a new material volume entry",
+            schema=self.material_volume_schema()
+
+        )
+    def add_control_edit_material_volume(self, id):
+        self.add_control(
+            "edit",
+            href = "/api/material_volume/" + id + "/",
+            method = "PUT",
+            encoding = "json",
+            schema=self.material_volume_schema()
+        )
+
+class MaterialFermiBuilder(MasonBuilder):
+    @staticmethod
+    def material_fermi_schema():
+        schema = {
+            "type": "object",
+            "required": ["fermi", "material", "volume"]
+        }
+        props = schema["properties"] = {}
+        props["fermi"] = {
+            "description": "Material'sfermi energy",
+            "type": "number"
+        }
+        props["volume"] = {
+            "description": "Volume for reference",
+            "type": "string"
+        }
+        props["material"] = {
+            "description": "Material for reference",
+            "type": "string"
+        }
+        return schema
+    
+    def add_control_all_material_fermi(self):
+        self.add_control(
+            "matdb:material_fermi-all",
+            href = "/api/material_fermi/",
+            method = "GET",
+            title = "Get all material fermi objects"
+        )
+    def add_control_delete_material_fermi(self, id):
+        self.add_control(
+            "matdb:delete",
+            href = "/api/material_fermi/" + id + "/",
+            method = "DELETE",
+            title = "Delete this resource"
+        )
+
+    def add_control_add_material_fermi(self):
+        self.add_control(
+            "matdb:add-material_fermi",
+            href = "/api/material_fermi/",
+            method="POST",
+            encoding="json",
+            title="Add a new material fermi entry",
+            schema=self.material_fermi_schema()
+
+        )
+    def add_control_edit_material_fermi(self, id):
+        self.add_control(
+            "edit",
+            href = "/api/material_fermi/" + id + "/",
+            method = "PUT",
+            encoding = "json",
+            schema=self.material_fermi_schema()
+        )
 
 
 if __name__ == '__main__':
