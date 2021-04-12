@@ -9,3 +9,4 @@ mongo
 mongo-tools
 wheel
 flask-mongoengine
+coverage
