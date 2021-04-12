@@ -272,7 +272,6 @@ class MaterialVolumeCollection(Resource):
                 )
             material_volume.save()
             loc = api.url_for(MaterialVolumeEntry, id=material_volume.pk)
-            # , headers={"Location": loc}
             return Response(status=201, headers={"Location": loc})
         except ValidationError:
             return {'error': 'wrong attribute type'}, 400
@@ -320,7 +319,7 @@ class MaterialVolumeEntry(Resource):
                 Material_Volume.objects(id=id).update(set__size_a=record['size a'], set__size_b=record['size b'],
                                                       set__dimension_type=record['dimension type'], set__bonding_length=record['bonding length'], set__material=material.id)
             return Response(status=204)
-        except IndexError:  # ValidationError
+        except ValidationError: 
             return {'error': 'wrong attribute type'}, 400
 
     def delete(self, id):
@@ -459,7 +458,7 @@ class MaterialBuilder(MasonBuilder):
 
     def add_control_all_material(self):
         self.add_control(
-            "matdb:material-all",
+            "${MATERIAL_DB}:material-all",
             href="/api/material/",
             method="GET",
             title="Get all material objects"
@@ -467,7 +466,7 @@ class MaterialBuilder(MasonBuilder):
 
     def add_control_delete_material(self, handle):
         self.add_control(
-            "matdb:delete",
+            "${MATERIAL_DB}:delete",
             href="/api/material/" + handle + "/",
             method="DELETE",
             title="Delete this resource"
@@ -475,7 +474,7 @@ class MaterialBuilder(MasonBuilder):
 
     def add_control_add_material(self):
         self.add_control(
-            "matdb:add-material",
+            "${MATERIAL_DB}:add-material",
             href="/api/material/",
             method="POST",
             encoding="json",
@@ -530,7 +529,7 @@ class MaterialVolumeBuilder(MasonBuilder):
 
     def add_control_all_material_volume(self):
         self.add_control(
-            "matdb:material_volume-all",
+            "${MATERIAL_DB}:material_volume-all",
             href="/api/material_volume/",
             method="GET",
             title="Get all material volume objects"
@@ -538,7 +537,7 @@ class MaterialVolumeBuilder(MasonBuilder):
 
     def add_control_delete_material_volume(self, id):
         self.add_control(
-            "matdb:delete_material_volume",
+            "${MATERIAL_DB}:delete_material_volume",
             href="/api/material_volume/" + id + "/",
             method="DELETE",
             title="Delete this resource"
@@ -546,7 +545,7 @@ class MaterialVolumeBuilder(MasonBuilder):
 
     def add_control_add_material_volume(self):
         self.add_control(
-            "matdb:add_material_volume",
+            "${MATERIAL_DB}:add_material_volume",
             href="/api/material_volume/",
             method="POST",
             encoding="json",
@@ -589,7 +588,7 @@ class MaterialFermiBuilder(MasonBuilder):
 
     def add_control_all_material_fermi(self):
         self.add_control(
-            "matdb:material_fermi-all",
+            "${MATERIAL_DB}:material_fermi-all",
             href="/api/material_fermi/",
             method="GET",
             title="Get all material fermi objects"
@@ -597,7 +596,7 @@ class MaterialFermiBuilder(MasonBuilder):
 
     def add_control_delete_material_fermi(self, id):
         self.add_control(
-            "matdb:delete",
+            "${MATERIAL_DB}:delete",
             href="/api/material_fermi/" + id + "/",
             method="DELETE",
             title="Delete this resource"
@@ -605,7 +604,7 @@ class MaterialFermiBuilder(MasonBuilder):
 
     def add_control_add_material_fermi(self):
         self.add_control(
-            "matdb:add-material_fermi",
+            "${MATERIAL_DB}:add-material_fermi",
             href="/api/material_fermi/",
             method="POST",
             encoding="json",
