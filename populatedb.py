@@ -1,4 +1,4 @@
-from flask import Flask,
+from flask import Flask
 from flask_mongoengine import MongoEngine
 from app import Material, Material_Fermi, Material_Volume
 
