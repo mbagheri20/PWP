@@ -1,1 +1,0 @@
-{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_","ns":"db.material__fermi"}],"uuid":"cc3417ee6cb545d08eba86bc308c33a5","collectionName":"material__fermi"}
