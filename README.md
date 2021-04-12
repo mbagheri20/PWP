@@ -7,7 +7,7 @@
 
 # Database setup
 ## Requirements and Creating Database
-This project requires `Flask`, `mongo`,`mongo-tools`,`flask-mongoengine`, `flask-restful`, `requests`,`wheel`,`idna`,`ipython`, `jsonschema` . 
+This project requires `Flask`, `mongo`,`mongo-tools`,`flask-mongoengine`, `flask-restful`, `requests`,`wheel`,`idna`,`ipython`, `jsonschema`, `coverage` . 
 
 We highly recommend to use a python virtual enviroment for instaling the requirements. to do this you can use this command:
 
