@@ -1,11 +1,6 @@
-import json
-from flask import Flask, request
-from flask.wrappers import Response
-from flask_restful import Api, Resource, abort
+from flask import Flask,
 from flask_mongoengine import MongoEngine
-from mongoengine.connection import connect
-from mongoengine.errors import ValidationError
-from app import Material, Material_Fermi, Material_Volume, error, app
+from app import Material, Material_Fermi, Material_Volume
 
 populate_db = Flask(__name__)
 populate_db.config['MONGODB_SETTINGS'] = {
@@ -14,6 +9,7 @@ populate_db.config['MONGODB_SETTINGS'] = {
     'port': 27017
 }
 db = MongoEngine(populate_db)
+
 
 class Migration(db.Document):  # class for migration
     migration = db.StringField(required=True, unique=True, max_length=64)
@@ -29,20 +25,23 @@ def initialize():
     migrations = []
     material_migration = ("Material", update_values(material(), "Material"))
     migrations.append(material_migration)
-    volume_migration = ("Material_Volume", update_values(volume(), "Material_Volume"))
+    volume_migration = ("Material_Volume", update_values(
+        volume(), "Material_Volume"))
     migrations.append(volume_migration)
-    fermi_migration = ("Material_Fermi", update_values(fermi(), "Material_Fermi"))
+    fermi_migration = ("Material_Fermi", update_values(
+        fermi(), "Material_Fermi"))
     migrations.append(fermi_migration)
     for each in migrations:
         if each:
             mig = Migration(migration=each[0], successful=each[1])
             mig.save()
             print("migration updated")
-        else: 
+        else:
             mig = Migration(migration=each[0], successful=each[1])
             mig.save()
             print("something went wront :(")
     return
+
 
 def update_values(dictlist: list, type: any) -> bool:
     classTypeEnum
@@ -53,11 +52,12 @@ def update_values(dictlist: list, type: any) -> bool:
         for each in dictlist:
             thign = classTypeEnum[type](**each)
             thign.save()
-            print(str(classTypeEnum[type]) + " saved") 
+            print(str(classTypeEnum[type]) + " saved")
         return True
     except ValueError:
         print("error occured")
         return False
+
 
 def material() -> list:
     """return list of dicts
@@ -70,6 +70,7 @@ def material() -> list:
     ]
     return material_list
 
+
 def volume() -> list:
     """return list of dicts
     [{volume1}, {volume2}, {volume3}]
@@ -77,30 +78,31 @@ def volume() -> list:
     materials = Material.objects().all()
     volume_list = [
         {
-            "size_a" : 1.1,
-            "size_b" : 1.11,
-            "size_c" : 1.111,
-            "bonding_length" : 1,
-            "dimension_type" : "3d",
-            "material" : materials[0].id
+            "size_a": 1.1,
+            "size_b": 1.11,
+            "size_c": 1.111,
+            "bonding_length": 1,
+            "dimension_type": "3d",
+            "material": materials[0].id
         },
         {
-            "size_a" : 1.2,
-            "size_b" : 1.22,
-            "size_c" : 1.222,
-            "bonding_length" : 2,
-            "dimension_type" : "3d",
-            "material" : materials[1].id
+            "size_a": 1.2,
+            "size_b": 1.22,
+            "size_c": 1.222,
+            "bonding_length": 2,
+            "dimension_type": "3d",
+            "material": materials[1].id
         },
         {
-            "size_a" : 1.3,
-            "size_b" : 1.33,
-            "bonding_length" : 3,
-            "dimension_type" : "2d",
-            "material" : materials[2].id
+            "size_a": 1.3,
+            "size_b": 1.33,
+            "bonding_length": 3,
+            "dimension_type": "2d",
+            "material": materials[2].id
         },
     ]
     return volume_list
+
 
 def fermi() -> list:
     """return list of dicts
@@ -111,21 +113,23 @@ def fermi() -> list:
     for each_volume in volumes:
         fermi = {"volume": each_volume.id,
                  "material": each_volume.material.id,
-                 "fermi" : 0.42
+                 "fermi": 0.42
                  }
         print(each_volume.to_json())
         fermi_list.append(fermi)
     return fermi_list
 
-def found_migrations()-> bool:
+
+def found_migrations() -> bool:
     migration = Migration.objects().first()
     if migration is None:
         return False
     return True
 
+
 classTypeEnum = {
-    "Material": Material, 
-    "Material_Volume": Material_Volume, 
+    "Material": Material,
+    "Material_Volume": Material_Volume,
     "Material_Fermi": Material_Fermi
 }
 
@@ -135,4 +139,3 @@ if __name__ == '__main__':
     else:
         print("Migrations Found")
     exit()
-
