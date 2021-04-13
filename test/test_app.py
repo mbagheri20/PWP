@@ -1,19 +1,19 @@
 import unittest
 from app import Material_Fermi, Material_Volume, Material, app
 import json
- 
- 
+
+
 MASON = 'application/vnd.mason+json'
- 
- 
+
+
 class BasicTestCase(unittest.TestCase):
- 
+
     def test_home(self):
         tester = app.test_client(self)
         response = tester.get('/', content_type='html/text')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data, b'Try /api/')
- 
+
     def test_get_material(self):
         tester = app.test_client(self)
         response = tester.get('/api/material/', content_type=MASON)
@@ -91,8 +91,6 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(resp, comparison_data)
 
-
- 
     def test_get_material_entry(self):
         tester = app.test_client(self)
         response = tester.get('/api/material/c/', content_type=MASON)
@@ -142,9 +140,10 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(resp, comparison_data)
 
         tester = app.test_client(self)
-        response = tester.get('/api/material/not_a_valid_material/', content_type=MASON)
+        response = tester.get(
+            '/api/material/not_a_valid_material/', content_type=MASON)
         self.assertEqual(response.status_code, 403)
- 
+
     def test_get_material_volume(self):
         tester = app.test_client(self)
         response = tester.get('/api/material_volume/', content_type=MASON)
@@ -269,7 +268,7 @@ class BasicTestCase(unittest.TestCase):
         }
         self.assertEqual(response.status_code, 200)
         self.assertEqual(resp, comparison_data)
- 
+
     def test_get_material_volume_entry(self):
         tester = app.test_client(self)
         volumes = Material_Volume.objects().all()
@@ -350,12 +349,14 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(resp, comparison_data)
 
         tester = app.test_client(self)
-        response = tester.get('/api/material_volume/not_a_valid_material/', content_type=MASON)
+        response = tester.get(
+            '/api/material_volume/not_a_valid_material/', content_type=MASON)
         self.assertEqual(response.status_code, 403)
 
-        response = tester.get('/api/material/111111111111111111111111/', content_type=MASON)
+        response = tester.get(
+            '/api/material/111111111111111111111111/', content_type=MASON)
         self.assertEqual(response.status_code, 403)
- 
+
     def test_get_material_fermi(self):
         tester = app.test_client(self)
         response = tester.get('/api/material_fermi/', content_type=MASON)
@@ -467,7 +468,7 @@ class BasicTestCase(unittest.TestCase):
         }
         self.assertEqual(response.status_code, 200)
         self.assertEqual(resp, comparison_data)
- 
+
     def test_get_material_fermi_entry(self):
         tester = app.test_client(self)
         fermies = Material_Fermi.objects().all()
@@ -530,12 +531,14 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(resp, comparison_data)
 
-        response = tester.get('/api/material/not_a_valid_material/', content_type=MASON)
+        response = tester.get(
+            '/api/material/not_a_valid_material/', content_type=MASON)
         self.assertEqual(response.status_code, 403)
 
-        response = tester.get('/api/material/111111111111111111111111/', content_type=MASON)
+        response = tester.get(
+            '/api/material/111111111111111111111111/', content_type=MASON)
         self.assertEqual(response.status_code, 403)
- 
+
 #  HTTPS PUTS
     def test_put_material_fermi_entry(self):
         tester = app.test_client(self)
@@ -546,11 +549,13 @@ class BasicTestCase(unittest.TestCase):
             "material": str(fermies[0].material.structure_name),
             "volume id": str(fermies[0].volume.id)
         }
-        response = tester.put("/api/material_fermi/" + str(fermies[0].id) + "/", data=json.dumps(put_data))
+        response = tester.put(
+            "/api/material_fermi/" + str(fermies[0].id) + "/", data=json.dumps(put_data))
         self.assertEqual(response.status_code, 204)
         put_data['fermi'] = 0.42
-        tester.put("/api/material_fermi/" + str(fermies[0].id) + "/", data=json.dumps(put_data))
- 
+        tester.put("/api/material_fermi/" +
+                   str(fermies[0].id) + "/", data=json.dumps(put_data))
+
     def test_put_material_volume_entry(self):
         tester = app.test_client(self)
         volumes = Material_Volume.objects().all()
@@ -563,26 +568,30 @@ class BasicTestCase(unittest.TestCase):
             "bonding length": 0.69,
             "material": str(volumes[0].material.structure_name)
         }
-        response = tester.put("/api/material_volume/" + str(volumes[0].id) + "/", data=json.dumps(put_data))
+        response = tester.put("/api/material_volume/" +
+                              str(volumes[0].id) + "/", data=json.dumps(put_data))
         self.assertEqual(response.status_code, 204)
         put_data['size a'] = 1.1
         put_data['size b'] = 1.11
         put_data['size c'] = 1.111
         put_data['bonding length'] = 1.0
         put_data['dimension type'] = "3d"
-        tester.put("/api/material_volume/" + str(volumes[0].id) + "/", data=json.dumps(put_data))
- 
+        tester.put("/api/material_volume/" +
+                   str(volumes[0].id) + "/", data=json.dumps(put_data))
+
     def test_put_material_entry(self):
         tester = app.test_client(self)
         materials = Material.objects().all()
         put_data = {
             "handle": "H2O"
         }
-        response = tester.put("/api/material/" + str(materials[0].structure_name) + "/", data=json.dumps(put_data))
+        response = tester.put(
+            "/api/material/" + str(materials[0].structure_name) + "/", data=json.dumps(put_data))
         self.assertEqual(response.status_code, 204)
         put_data['handle'] = "a"
-        tester.put("/api/material/" + str(materials[0].structure_name) + "/", data=json.dumps(put_data))
- 
+        tester.put("/api/material/" +
+                   str(materials[0].structure_name) + "/", data=json.dumps(put_data))
+
     def test_post_and_delete_material_fermi(self):
         tester = app.test_client(self)
         volumes = Material_Volume.objects().first()
@@ -591,11 +600,13 @@ class BasicTestCase(unittest.TestCase):
             "material": str(volumes.material.structure_name),
             "volume": str(volumes.id)
         }
-        response = tester.post("/api/material_fermi/", data=json.dumps(post_data))
+        response = tester.post("/api/material_fermi/",
+                               data=json.dumps(post_data))
         self.assertEqual(response.status_code, 201)
         fermi = Material_Fermi.objects(fermi=123.0).all()
         self.assertEqual(len(fermi), 1)
-        response = tester.delete("/api/material_fermi/" + str(fermi[0].id) + "/")
+        response = tester.delete(
+            "/api/material_fermi/" + str(fermi[0].id) + "/")
         self.assertEqual(response.status_code, 201)
         fermi = Material_Fermi.objects(fermi=123.0).all()
         self.assertEqual(len(fermi), 0)
@@ -604,10 +615,10 @@ class BasicTestCase(unittest.TestCase):
             "material": str(volumes.material.structure_name),
             "volume": str(volumes.id)
         }
-        response = tester.post("/api/material_fermi/", data=json.dumps(post_data))
+        response = tester.post("/api/material_fermi/",
+                               data=json.dumps(post_data))
         self.assertEqual(response.status_code, 400)
- 
- 
+
     def test_post_and_delete_material_volume(self):
         tester = app.test_client(self)
         materials = Material.objects().first()
@@ -619,11 +630,13 @@ class BasicTestCase(unittest.TestCase):
             "bonding length": 0.42,
             "material": str(materials.structure_name)
         }
-        response = tester.post("/api/material_volume/", data=json.dumps(post_data))
+        response = tester.post("/api/material_volume/",
+                               data=json.dumps(post_data))
         self.assertEqual(response.status_code, 201)
         volume = Material_Volume.objects(size_c=303.0).all()
         self.assertEqual(len(volume), 1)
-        response = tester.delete("/api/material_volume/" + str(volume[0].id) + "/")
+        response = tester.delete(
+            "/api/material_volume/" + str(volume[0].id) + "/")
         self.assertEqual(response.status_code, 201)
         volume = Material_Volume.objects(size_c=303.0).all()
         self.assertEqual(len(volume), 0)
@@ -635,9 +648,10 @@ class BasicTestCase(unittest.TestCase):
             "bonding length": 0.42,
             "material": str(materials.structure_name)
         }
-        response = tester.post("/api/material_volume/", data=json.dumps(post_data))
+        response = tester.post("/api/material_volume/",
+                               data=json.dumps(post_data))
         self.assertEqual(response.status_code, 400)
- 
+
     def test_post_and_delete_material(self):
         tester = app.test_client(self)
         post_data = {
@@ -647,23 +661,24 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 201)
         material = Material.objects(structure_name="test").all()
         self.assertEqual(len(material), 1)
-        response = tester.delete("/api/material/" + str(material[0].structure_name) + "/")
+        response = tester.delete(
+            "/api/material/" + str(material[0].structure_name) + "/")
         self.assertEqual(response.status_code, 201)
         material = Material.objects(structure_name="test").all()
         self.assertEqual(len(material), 0)
- 
-        #This part test if the attributes are wrong
+
+        # This part test if the attributes are wrong
         post_data = {
             "name": 1.0
         }
         response = tester.post("/api/material/", data=json.dumps(post_data))
         self.assertEqual(response.status_code, 400)
- 
-        #duplicate
+
+        # duplicate
         post_data = {"name": 'a'}
         response = tester.post("/api/material/", data=json.dumps(post_data))
         self.assertEqual(response.status_code, 409)
- 
- 
+
+
 if __name__ == '__main__':
     unittest.main()

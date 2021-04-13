@@ -12,7 +12,6 @@ populate_db.config['MONGODB_SETTINGS'] = {
 db = MongoEngine(populate_db)
 
 
-
 class Migration(db.Document):  # class for migration
     migration = db.StringField(required=True, unique=True, max_length=64)
     successful = db.BooleanField(required=True)
@@ -32,27 +31,22 @@ def initialize():
         if each:
             mig = Migration(migration=each[0], successful=each[1])
             mig.save()
-            print("migration updated")
         else:
             mig = Migration(migration=each[0], successful=each[1])
             mig.save()
-            print("something went wront :(")
     return
 
 
 def update_values(dictlist: list, type: any) -> bool:
     classTypeEnum
     if type not in classTypeEnum.keys():
-        print("error")
         return False
     try:
         for each in dictlist:
             thign = classTypeEnum[type](**each)
             thign.save()
-            print(str(classTypeEnum[type]) + " saved")
         return True
     except ValueError:
-        print("error occured")
         return False
 
 
@@ -129,14 +123,19 @@ classTypeEnum = {
     "Material_Fermi": Material_Fermi
 }
 
+
+def drop_database():
+    connection = mongoengine.connect(host='mongodb://localhost/db')
+    connection.drop_database('db')
+
+
 if __name__ == '__main__':
     if not found_migrations():
-       initialize()
-       print("Database Initialized, Migrations added")
+        initialize()
+        print("Database Initialized, Migrations added")
     else:
         print("Migrations Found")
-        connection = mongoengine.connect(host='mongodb://localhost/db')
-        connection.drop_database('db')
+        drop_database()
         initialize()
         print("Database Reset, Migrations added")
     exit()
