@@ -7,6 +7,7 @@ MASON = 'application/vnd.mason+json'
  
  
 class BasicTestCase(unittest.TestCase):
+ 
     def test_home(self):
         tester = app.test_client(self)
         response = tester.get('/', content_type='html/text')
@@ -579,6 +580,14 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 201)
         fermi = Material_Fermi.objects(fermi=123.0).all()
         self.assertEqual(len(fermi), 0)
+        post_data = {
+            "fermi": "fail",
+            "material": str(volumes.material.structure_name),
+            "volume": str(volumes.id)
+        }
+        response = tester.post("/api/material_fermi/", data=json.dumps(post_data))
+        self.assertEqual(response.status_code, 400)
+ 
  
     def test_post_and_delete_material_volume(self):
         tester = app.test_client(self)
@@ -599,6 +608,16 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 201)
         volume = Material_Volume.objects(size_c=303.0).all()
         self.assertEqual(len(volume), 0)
+        post_data = {
+            "size a": "fail",
+            "size b": 202.0,
+            "size c": 303.0,
+            "dimension type": "3D",
+            "bonding length": 0.42,
+            "material": str(materials.structure_name)
+        }
+        response = tester.post("/api/material_volume/", data=json.dumps(post_data))
+        self.assertEqual(response.status_code, 400)
  
     def test_post_and_delete_material(self):
         tester = app.test_client(self)
@@ -614,6 +633,17 @@ class BasicTestCase(unittest.TestCase):
         material = Material.objects(structure_name="test").all()
         self.assertEqual(len(material), 0)
  
+        #This part test if the attributes are wrong
+        post_data = {
+            "name": 1.0
+        }
+        response = tester.post("/api/material/", data=json.dumps(post_data))
+        self.assertEqual(response.status_code, 400)
+ 
+        post_data = "name"
+        response = tester.post("/api/material/", data=json.dumps(post_data))
+        self.assertEqual(response.status_code, 200)
+ 
+ 
 if __name__ == '__main__':
     unittest.main()
-    

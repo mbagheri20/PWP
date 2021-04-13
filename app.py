@@ -4,8 +4,8 @@ from flask.wrappers import Response
 from flask_restful import Api, Resource, abort
 from flask_mongoengine import MongoEngine
 from mongoengine.errors import ValidationError
-
-
+ 
+ 
 app = Flask(__name__)
 api = Api(app)
 app.config['MONGODB_SETTINGS'] = {
@@ -14,8 +14,8 @@ app.config['MONGODB_SETTINGS'] = {
     'port': 27017
 }
 db = MongoEngine(app)
-
-
+ 
+ 
 LINK_RELATIONS_URL = "/material/link-relations/"
 MATERIAL_PROFILE = "/profiles/material/"
 MATERIAL_VOLUME_PROFILE = "/profiles/material_volume/"
@@ -28,36 +28,36 @@ PROFILE = "profile"
 COLLECTION = "collection"
 REF_MATERIAL = "ref_material"
 REF_VOLUME = "ref_volume"
-
-
+ 
+ 
 class MasonBuilder(dict):
     def add_error(self, title, details):
         self["@error"] = {
             "@message": title,
             "@messages": [details],
         }
-
+ 
     def add_namespace(self, ns, uri):
         if "@namespaces" not in self:
             self["@namespaces"] = {}
-
+ 
         self["@namespaces"][ns] = {
             "name": uri
         }
-
+ 
     def add_control(self, ctrl_name, href, **kwargs):
         if "@controls" not in self:
             self["@controls"] = {}
-
+ 
         self["@controls"][ctrl_name] = kwargs
         self["@controls"][ctrl_name]["href"] = href
-
-
+ 
+ 
 class Material(db.Document):  # class for Material
     id = db.ObjectIdField(db_field='_id')
     structure_name = db.StringField(required=True, unique=True, max_length=50)
-
-
+ 
+ 
 # class for volume. Size_c is not necessarily needed
 class Material_Volume(db.Document):
     id = db.ObjectIdField(db_field='_id')
@@ -67,25 +67,25 @@ class Material_Volume(db.Document):
     bonding_length = db.FloatField(required=True)  # between 0.0001-5
     dimension_type = db.StringField(required=True, max_length=64)
     material = db.ReferenceField('Material', required=True)
-
-
+ 
+ 
 class Material_Fermi(db.Document):  # class for Fermi energy
     id = db.ObjectIdField(db_field='_id')
     fermi = db.FloatField(required=True)
     material = db.ReferenceField('Material', required=True)
     volume = db.ReferenceField('Material_Volume', required=True)
-
-
+ 
+ 
 @app.route('/')
 def home():
     return "Try /api/"
-
-
+ 
+ 
 @app.route(ERROR_PROFILE)
 def error():
     return ERROR_PROFILE
-
-
+ 
+ 
 @app.route("/api/")
 def entrypoint():
     body = {
@@ -101,19 +101,25 @@ def entrypoint():
         }
     }
     return Response(json.dumps(body), status=200)
-
-
+ 
+ 
 def create_error_response(status_code, title, message=None):
     resource_url = request.path
     body = MasonBuilder(resource_url=resource_url)
     body.add_error(title, message)
     body.add_control(PROFILE, href=ERROR_PROFILE)
     return Response(json.dumps(body), status_code, mimetype=MASON)
-
-
+ 
+ 
 class MaterialCollection(Resource):
-
+ 
     def get(self):
+        try:
+            record = json.loads(request.data)
+        except KeyError:
+            return create_error_response(
+                400, "KeyError",
+                "wrong format")
         material = Material.objects().all()
         if not material:
             return {'error': 'data not found'}, 403
@@ -131,12 +137,8 @@ class MaterialCollection(Resource):
                 item.add_control(PROFILE, MATERIAL_PROFILE)
                 body["items"].append(item)
             return Response(json.dumps(body), 200, mimetype=MASON)
-
+ 
     def post(self):
-        if not request.json:
-            return create_error_response(
-                415, "Not found",
-                "Missing json")
         try:
             record = json.loads(request.data)
         except KeyError:
@@ -149,13 +151,15 @@ class MaterialCollection(Resource):
                 save = material.save()
                 loc = api.url_for(MaterialEntry, handle=save.structure_name)
                 return Response(status=201, headers={"Location": loc})
-            abort(409)
+            return {'error': 'All values not present'}, 409
         except ValidationError:
             return {'error': 'wrong attribute types'}, 400
-
-
+        except KeyError:
+            return {'error': 'wrong attribute types'}, 400
+ 
+ 
 class MaterialEntry(Resource):
-
+ 
     def get(self, handle):
         material = Material.objects(structure_name=handle).first()
         if not material:
@@ -169,31 +173,31 @@ class MaterialEntry(Resource):
             body.add_control_edit_material(handle)
             body.add_control_delete_material(handle)
             return Response(json.dumps(body), 200, mimetype=MASON)
-
+ 
     def put(self, handle):
         try:
             record = json.loads(request.data)
         except KeyError:
             return {'error': 'wrong format'}, 400
-
+ 
         material = Material.objects(structure_name=handle).first()
         if not material:
             return {'error': 'data not found'}, 403
         else:
-
+ 
             Material.objects(structure_name=handle).update(
                 set__structure_name=record['handle'])
             return Response(status=204)
-
+ 
     def delete(self, handle):
         material = Material.objects(structure_name=handle).first()
         if not material:
             return {'error': 'deletable entry not found'}, 403
         else:
             Material.objects(id=material.id).delete()
-            return Response(status=200)
-
-
+            return Response(status=201)
+ 
+ 
 class MaterialVolumeCollection(Resource):
     def get(self):
         material_volume = Material_Volume.objects().all()
@@ -229,14 +233,14 @@ class MaterialVolumeCollection(Resource):
                     MaterialEntry, handle=each.material.structure_name))
                 body["items"].append(item)
             return Response(json.dumps(body), 200, mimetype=MASON)
-
+ 
     def post(self):
         try:
             record = json.loads(request.data)
             material = Material.objects(
                 structure_name=record['material']).first()
         except KeyError:
-
+ 
             return {'error': 'wrong format'}, 400
         try:
             if 'size c' in record:
@@ -261,10 +265,10 @@ class MaterialVolumeCollection(Resource):
             return Response(status=201, headers={"Location": loc})
         except ValidationError:
             return {'error': 'wrong attribute type'}, 400
-
-
+ 
+ 
 class MaterialVolumeEntry(Resource):
-
+ 
     def get(self, id):
         material_volume = Material_Volume.objects(id=id).first()
         if not material_volume:
@@ -285,7 +289,7 @@ class MaterialVolumeEntry(Resource):
             body.add_control_edit_material_volume(id)
             body.add_control_delete_material_volume(id)
             return Response(json.dumps(body), 200, mimetype=MASON)
-
+ 
     def put(self, id):
         try:
             record = json.loads(request.data)
@@ -307,7 +311,7 @@ class MaterialVolumeEntry(Resource):
             return Response(status=204)
         except ValidationError:
             return {'error': 'wrong attribute type'}, 400
-
+ 
     def delete(self, id):
         material_volume = Material_Volume.objects(id=id).first()
         if not material_volume:
@@ -315,8 +319,8 @@ class MaterialVolumeEntry(Resource):
         else:
             Material_Volume.objects(id=str(material_volume.id)).delete()
             return Response(status=201)
-
-
+ 
+ 
 class MaterialFermiCollection(Resource):
     def get(self):
         material_fermi = Material_Fermi.objects().all()
@@ -327,7 +331,6 @@ class MaterialFermiCollection(Resource):
             body.add_namespace(MATERIAL_DB, LINK_RELATIONS_URL)
             body.add_control(SELF, api.url_for(MaterialFermiCollection))
             body.add_control_all_material_fermi()
-            # Do we need a control material and volume
             body.add_control_add_material_fermi()
             body["items"] = []
             for each in material_fermi:
@@ -344,7 +347,7 @@ class MaterialFermiCollection(Resource):
                     MaterialVolumeEntry, id=str(each.volume.id)))
                 body["items"].append(item)
             return Response(json.dumps(body), 200, mimetype=MASON)
-
+ 
     def post(self):
         try:
             record = json.loads(request.data)
@@ -363,13 +366,13 @@ class MaterialFermiCollection(Resource):
                 material_fermi.save()
                 loc = api.url_for(MaterialFermiEntry, id=material_fermi.pk)
                 return Response(status=201, headers={"Location": loc})
-            return {'error': 'duplicate value'}, 409
+            return {'error': 'All values not present'}, 409
         except ValidationError:
             return {'error': 'wrong attribute type'}, 400
-
-
+ 
+ 
 class MaterialFermiEntry(Resource):
-
+ 
     def get(self, id):
         material_fermi = Material_Fermi.objects(id=id).first()
         if not material_fermi:
@@ -386,7 +389,7 @@ class MaterialFermiEntry(Resource):
             body.add_control_edit_material_fermi(id)
             body.add_control_delete_material_fermi(id)
             return Response(json.dumps(body), 200, mimetype=MASON)
-
+ 
     def put(self, id):
         try:
             record = json.loads(request.data)
@@ -407,7 +410,7 @@ class MaterialFermiEntry(Resource):
                 return Response(status=204)
         except ValidationError:
             return {'error': 'wrong attribute type'}, 400
-
+ 
     def delete(self, id):
         material_fermi = Material_Fermi.objects(id=id).first()
         if not material_fermi:
@@ -415,8 +418,8 @@ class MaterialFermiEntry(Resource):
         else:
             Material_Fermi.objects(id=str(material_fermi.id)).delete()
             return Response(status=201)
-
-
+ 
+ 
 # Collections
 api.add_resource(MaterialCollection, "/api/material/")
 api.add_resource(MaterialVolumeCollection, "/api/material_volume/")
@@ -425,8 +428,8 @@ api.add_resource(MaterialFermiCollection, "/api/material_fermi/")
 api.add_resource(MaterialEntry, "/api/material/<handle>/")
 api.add_resource(MaterialVolumeEntry, "/api/material_volume/<id>/")
 api.add_resource(MaterialFermiEntry, "/api/material_fermi/<id>/")
-
-
+ 
+ 
 class MaterialBuilder(MasonBuilder):
     @staticmethod
     def material_schema():
@@ -440,7 +443,7 @@ class MaterialBuilder(MasonBuilder):
             "type": "string"
         }
         return schema
-
+ 
     def add_control_all_material(self):
         self.add_control(
             MATERIAL_DB + ":material-all",
@@ -448,7 +451,7 @@ class MaterialBuilder(MasonBuilder):
             method="GET",
             title="Get all material objects"
         )
-
+ 
     def add_control_delete_material(self, handle):
         self.add_control(
             MATERIAL_DB + ":delete",
@@ -456,7 +459,7 @@ class MaterialBuilder(MasonBuilder):
             method="DELETE",
             title="Delete this resource"
         )
-
+ 
     def add_control_add_material(self):
         self.add_control(
             MATERIAL_DB + ":add-material",
@@ -465,9 +468,9 @@ class MaterialBuilder(MasonBuilder):
             encoding="json",
             title="Add a new material",
             schema=self.material_schema()
-
+ 
         )
-
+ 
     def add_control_edit_material(self, handle):
         self.add_control(
             "edit",
@@ -476,8 +479,8 @@ class MaterialBuilder(MasonBuilder):
             encoding="json",
             schema=self.material_schema()
         )
-
-
+ 
+ 
 class MaterialVolumeBuilder(MasonBuilder):
     @staticmethod
     def material_volume_schema():
@@ -511,7 +514,7 @@ class MaterialVolumeBuilder(MasonBuilder):
             "type": "string"
         }
         return schema
-
+ 
     def add_control_all_material_volume(self):
         self.add_control(
             MATERIAL_DB + ":material_volume-all",
@@ -519,7 +522,7 @@ class MaterialVolumeBuilder(MasonBuilder):
             method="GET",
             title="Get all material volume objects"
         )
-
+ 
     def add_control_delete_material_volume(self, id):
         self.add_control(
             MATERIAL_DB + ":delete_material_volume",
@@ -527,7 +530,7 @@ class MaterialVolumeBuilder(MasonBuilder):
             method="DELETE",
             title="Delete this resource"
         )
-
+ 
     def add_control_add_material_volume(self):
         self.add_control(
             MATERIAL_DB + ":add_material_volume",
@@ -536,9 +539,9 @@ class MaterialVolumeBuilder(MasonBuilder):
             encoding="json",
             title="Add a new material volume entry",
             schema=self.material_volume_schema()
-
+ 
         )
-
+ 
     def add_control_edit_material_volume(self, id):
         self.add_control(
             "edit",
@@ -547,8 +550,8 @@ class MaterialVolumeBuilder(MasonBuilder):
             encoding="json",
             schema=self.material_volume_schema()
         )
-
-
+ 
+ 
 class MaterialFermiBuilder(MasonBuilder):
     @staticmethod
     def material_fermi_schema():
@@ -570,7 +573,7 @@ class MaterialFermiBuilder(MasonBuilder):
             "type": "string"
         }
         return schema
-
+ 
     def add_control_all_material_fermi(self):
         self.add_control(
             MATERIAL_DB + ":material_fermi-all",
@@ -578,7 +581,7 @@ class MaterialFermiBuilder(MasonBuilder):
             method="GET",
             title="Get all material fermi objects"
         )
-
+ 
     def add_control_delete_material_fermi(self, id):
         self.add_control(
             MATERIAL_DB + ":delete",
@@ -586,7 +589,7 @@ class MaterialFermiBuilder(MasonBuilder):
             method="DELETE",
             title="Delete this resource"
         )
-
+ 
     def add_control_add_material_fermi(self):
         self.add_control(
             MATERIAL_DB + ":add-material_fermi",
@@ -595,9 +598,9 @@ class MaterialFermiBuilder(MasonBuilder):
             encoding="json",
             title="Add a new material fermi entry",
             schema=self.material_fermi_schema()
-
+ 
         )
-
+ 
     def add_control_edit_material_fermi(self, id):
         self.add_control(
             "edit",
@@ -606,7 +609,7 @@ class MaterialFermiBuilder(MasonBuilder):
             encoding="json",
             schema=self.material_fermi_schema()
         )
-
-
+ 
+ 
 if __name__ == '__main__':
     app.run(debug=True)
