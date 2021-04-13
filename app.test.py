@@ -7,6 +7,7 @@ MASON = 'application/vnd.mason+json'
  
  
 class BasicTestCase(unittest.TestCase):
+
     def test_home(self):
         tester = app.test_client(self)
         response = tester.get('/', content_type='html/text')
@@ -562,6 +563,24 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 204)
         put_data['handle'] = "a"
         tester.put("/api/material/" + str(materials[0].structure_name) + "/", data=json.dumps(put_data))
- 
+
+    def test_post_and_delete_material_fermi(self):
+        tester = app.test_client(self)
+        volumes = Material_Volume.objects().first()
+        put_data = {
+            "fermi": 123.0,
+            "material": str(volumes.material.structure_name),
+            "volume": str(volumes.id)
+        }
+        response = tester.post("/api/material_fermi/", data=json.dumps(put_data))
+        self.assertEqual(response.status_code, 201)
+        fermi = Material_Fermi.objects(fermi=123.0).all()
+        self.assertEqual(len(fermi), 1)
+        response = tester.delete("/api/material_fermi/" + str(fermi[0].id) + "/")
+        self.assertEqual(response.status_code, 201)
+        fermi = Material_Fermi.objects(fermi=123.0).all()
+        self.assertEqual(len(fermi), 0)
+
 if __name__ == '__main__':
     unittest.main()
+    
