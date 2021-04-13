@@ -114,12 +114,6 @@ def create_error_response(status_code, title, message=None):
 class MaterialCollection(Resource):
  
     def get(self):
-        try:
-            record = json.loads(request.data)
-        except KeyError:
-            return create_error_response(
-                400, "KeyError",
-                "wrong format")
         material = Material.objects().all()
         if not material:
             return {'error': 'data not found'}, 403

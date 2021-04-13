@@ -640,9 +640,10 @@ class BasicTestCase(unittest.TestCase):
         response = tester.post("/api/material/", data=json.dumps(post_data))
         self.assertEqual(response.status_code, 400)
  
-        post_data = "name"
+        #duplicate
+        post_data = {"name": 'a'}
         response = tester.post("/api/material/", data=json.dumps(post_data))
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 409)
  
  
 if __name__ == '__main__':
