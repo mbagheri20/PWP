@@ -57,11 +57,6 @@ class Material(db.Document):  # class for Material
     id = db.ObjectIdField(db_field='_id')
     structure_name = db.StringField(required=True, unique=True, max_length=50)
 
-    def to_json(self):
-        if self.id is not None:
-            return {"id": str(self.id), "structure name": self.structure_name}
-        return {"structure name": self.structure_name}
-
 
 # class for volume. Size_c is not necessarily needed
 class Material_Volume(db.Document):
@@ -73,21 +68,12 @@ class Material_Volume(db.Document):
     dimension_type = db.StringField(required=True, max_length=64)
     material = db.ReferenceField('Material', required=True)
 
-    def to_json(self):
-        if self.size_c:
-            return {"id": str(self.id), "size a": self.size_a, "size b": self.size_b, "size c": self.size_c, "bonding length": self.bonding_length, "dimension type": self.dimension_type, "material": self.material.to_json()}
-        else:
-            return {"id": str(self.id), "size a": self.size_a, "size b": self.size_b, "bonding length": self.bonding_length, "dimension type": self.dimension_type, "material": self.material.to_json()}
-
 
 class Material_Fermi(db.Document):  # class for Fermi energy
     id = db.ObjectIdField(db_field='_id')
     fermi = db.FloatField(required=True)
     material = db.ReferenceField('Material', required=True)
     volume = db.ReferenceField('Material_Volume', required=True)
-
-    def to_json(self):
-        return {"id": str(self.id), "fermi": self.fermi, "material": self.material.to_json(), "volume": self.volume.to_json()}
 
 
 @app.route('/')
@@ -418,7 +404,6 @@ class MaterialFermiEntry(Resource):
             else:
                 Material_Fermi.objects(id=id).update(
                     set__fermi=record['fermi'], set__material=material.id, set__volume=material_volume.id)
-
                 return Response(status=204)
         except ValidationError:
             return {'error': 'wrong attribute type'}, 400

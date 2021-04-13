@@ -516,6 +516,20 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(resp, comparison_data)
 
+#  HTTPS PUTS
+    def test_put_material_fermi_entry(self):
+        tester = app.test_client(self)
+        fermies = Material_Fermi.objects().all()
+        put_data = {
+            "id": str(fermies[0].id),
+            "fermi": 100.0,
+            "material": str(fermies[0].material.structure_name),
+            "volume id": str(fermies[0].volume.id)
+        }
+        response = tester.put("/api/material_fermi/" + str(fermies[0].id) + "/", data=json.dumps(put_data))
+        self.assertEqual(response.status_code, 204)
+        put_data['fermi'] = 0.42
+        tester.put("/api/material_fermi/" + str(fermies[0].id) + "/", data=json.dumps(put_data))
 
 if __name__ == '__main__':
     unittest.main()

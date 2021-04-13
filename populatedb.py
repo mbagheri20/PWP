@@ -15,11 +15,6 @@ class Migration(db.Document):  # class for migration
     migration = db.StringField(required=True, unique=True, max_length=64)
     successful = db.BooleanField(required=True)
 
-    def to_json(self):
-        if self.id is not None:
-            return {"id": str(self.id), "migration": self.migration}
-        return {"migration": self.migration}
-
 
 def initialize():
     migrations = []
@@ -115,7 +110,6 @@ def fermi() -> list:
                  "material": each_volume.material.id,
                  "fermi": 0.42
                  }
-        print(each_volume.to_json())
         fermi_list.append(fermi)
     return fermi_list
 
@@ -135,7 +129,12 @@ classTypeEnum = {
 
 if __name__ == '__main__':
     if not found_migrations():
-        initialize()
+       initialize()
+       print("Database Initialized, Migrations added")
     else:
         print("Migrations Found")
+        # db.drop_database('db')
+        # print(db)
+        # # initialize()
+        # print("Database Reset, Migrations added")
     exit()
