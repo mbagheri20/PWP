@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_mongoengine import MongoEngine
+import mongoengine
 from app import Material, Material_Fermi, Material_Volume
 
 populate_db = Flask(__name__)
@@ -9,6 +10,7 @@ populate_db.config['MONGODB_SETTINGS'] = {
     'port': 27017
 }
 db = MongoEngine(populate_db)
+
 
 
 class Migration(db.Document):  # class for migration
@@ -133,8 +135,8 @@ if __name__ == '__main__':
        print("Database Initialized, Migrations added")
     else:
         print("Migrations Found")
-        # db.drop_database('db')
-        # print(db)
-        # # initialize()
-        # print("Database Reset, Migrations added")
+        connection = mongoengine.connect(host='mongodb://localhost/db')
+        connection.drop_database('db')
+        initialize()
+        print("Database Reset, Migrations added")
     exit()
