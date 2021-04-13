@@ -116,7 +116,9 @@ class MaterialCollection(Resource):
     def get(self):
         material = Material.objects().all()
         if not material:
-            return {'error': 'data not found'}, 403
+            return create_error_response(
+                403, "Material is missing",
+                "There is no material with the given handle")
         else:
             body = MaterialBuilder()
             body.add_namespace(MATERIAL_DB, LINK_RELATIONS_URL)
@@ -145,19 +147,26 @@ class MaterialCollection(Resource):
                 save = material.save()
                 loc = api.url_for(MaterialEntry, handle=save.structure_name)
                 return Response(status=201, headers={"Location": loc})
-            return {'error': 'All values not present'}, 409
+            return create_error_response(
+                409, "Values missing",
+                "All values not present")
         except ValidationError:
-            return {'error': 'wrong attribute types'}, 400
+            return create_error_response(
+                400, "ValidationError",
+                "Wrong attribute types")
         except KeyError:
-            return {'error': 'wrong attribute types'}, 400
- 
+            return create_error_response(
+                400, "KeyError",
+                "Wrong attribute types")
  
 class MaterialEntry(Resource):
  
     def get(self, handle):
         material = Material.objects(structure_name=handle).first()
         if not material:
-            return {'error': 'data not found'}, 403
+            return create_error_response(
+                403, "Material is missing",
+                "There is no material with the given name")
         else:
             body = MaterialBuilder(structure_name=material.structure_name)
             body.add_namespace(MATERIAL_DB, LINK_RELATIONS_URL)
@@ -172,11 +181,15 @@ class MaterialEntry(Resource):
         try:
             record = json.loads(request.data)
         except KeyError:
-            return {'error': 'wrong format'}, 400
+            return create_error_response(
+                400, "KeyError",
+                "wrong format")
  
         material = Material.objects(structure_name=handle).first()
         if not material:
-            return {'error': 'data not found'}, 403
+            return create_error_response(
+                403, "Material is missing",
+                "There is no material with the given name")
         else:
  
             Material.objects(structure_name=handle).update(
@@ -186,7 +199,9 @@ class MaterialEntry(Resource):
     def delete(self, handle):
         material = Material.objects(structure_name=handle).first()
         if not material:
-            return {'error': 'deletable entry not found'}, 403
+            return create_error_response(
+                403, "Material is missing",
+                "There is no material with the given name")
         else:
             Material.objects(id=material.id).delete()
             return Response(status=201)
@@ -196,15 +211,17 @@ class MaterialVolumeCollection(Resource):
     def get(self):
         material_volume = Material_Volume.objects().all()
         if not material_volume:
-            return {'error': 'data not found'}, 403
+            return create_error_response(
+                403, "Material Volume is missing",
+                "There is no material volume with the given id")
         else:
             body = MaterialVolumeBuilder()
             body.add_namespace(MATERIAL_DB, LINK_RELATIONS_URL)
             body.add_control(SELF, api.url_for(MaterialVolumeCollection))
             body.add_control_all_material_volume()
             body.add_control_add_material_volume()
-            body["items"] = []  # Do we need a control for material? yes
-            for each in material_volume:  # If needs to be added to check for size c
+            body["items"] = []  
+            for each in material_volume:  
                 if not each.size_c:
                     item = MaterialVolumeBuilder(size_a=each.size_a,
                                                  size_b=each.size_b,
@@ -234,8 +251,9 @@ class MaterialVolumeCollection(Resource):
             material = Material.objects(
                 structure_name=record['material']).first()
         except KeyError:
- 
-            return {'error': 'wrong format'}, 400
+            return create_error_response(
+                400, "KeyError",
+                "wrong format")
         try:
             if 'size c' in record:
                 material_volume = Material_Volume(
@@ -258,15 +276,25 @@ class MaterialVolumeCollection(Resource):
             loc = api.url_for(MaterialVolumeEntry, id=material_volume.pk)
             return Response(status=201, headers={"Location": loc})
         except ValidationError:
-            return {'error': 'wrong attribute type'}, 400
+            return create_error_response(
+                400, "ValidationError",
+                "Wrong attribute types")
  
  
 class MaterialVolumeEntry(Resource):
  
     def get(self, id):
-        material_volume = Material_Volume.objects(id=id).first()
+        try:
+            material_volume = Material_Volume.objects(id=id).first()
+        except ValidationError:
+            return create_error_response(
+                403, "ValidationError",
+                "Not a valid objectId")
+        
         if not material_volume:
-            return {'error': 'data not found'}, 403
+            return create_error_response(
+                403, "Material Volume is missing",
+                "There is no material volume with the given id")
         else:
             body = MaterialVolumeBuilder(
                 size_a=material_volume.size_a,
@@ -290,11 +318,15 @@ class MaterialVolumeEntry(Resource):
             material_volume = Material_Volume.objects(id=id).first()
             material = Material.objects(
                 structure_name=record['material']).first()
-            print(material.structure_name)
         except KeyError:
-            return {'error': 'wrong format'}, 400
+            return create_error_response(
+                400, "KeyError",
+                "Wrong format")
+ 
         if not material_volume:
-            return {'error': 'editable not found'}, 403
+            return create_error_response(
+                403, "Material Volume is missing",
+                "There is no material volume with the given id")
         try:
             if 'size c' in record:
                 Material_Volume.objects(id=id).update(set__size_a=record['size a'], set__size_b=record['size b'],
@@ -304,12 +336,16 @@ class MaterialVolumeEntry(Resource):
                                                       set__dimension_type=record['dimension type'], set__bonding_length=record['bonding length'], set__material=material.id)
             return Response(status=204)
         except ValidationError:
-            return {'error': 'wrong attribute type'}, 400
+            return create_error_response(
+                400, "ValidationError",
+                "Wrong attribute types")
  
     def delete(self, id):
         material_volume = Material_Volume.objects(id=id).first()
         if not material_volume:
-            return {'error': 'data not found'}, 403
+            return create_error_response(
+                403, "Material Volume is missing",
+                "There is no material volume with the given id")
         else:
             Material_Volume.objects(id=str(material_volume.id)).delete()
             return Response(status=201)
@@ -319,7 +355,9 @@ class MaterialFermiCollection(Resource):
     def get(self):
         material_fermi = Material_Fermi.objects().all()
         if not material_fermi:
-            return {'error': 'data not found'}, 403
+            return create_error_response(
+                403, "Material Fermi is missing",
+                "There is no material fermi with the given id")
         else:
             body = MaterialFermiBuilder()
             body.add_namespace(MATERIAL_DB, LINK_RELATIONS_URL)
@@ -349,7 +387,10 @@ class MaterialFermiCollection(Resource):
                 structure_name=record['material']).first()
             volume = Material_Volume.objects(id=record['volume']).first()
         except KeyError:
-            return {'error': 'wrong format'}, 400
+            return create_error_response(
+                400, "KeyError",
+                "Wrong format")
+ 
         try:
             if material is not None and volume is not None:
                 material_fermi = Material_Fermi(
@@ -360,17 +401,28 @@ class MaterialFermiCollection(Resource):
                 material_fermi.save()
                 loc = api.url_for(MaterialFermiEntry, id=material_fermi.pk)
                 return Response(status=201, headers={"Location": loc})
-            return {'error': 'All values not present'}, 409
+            return create_error_response(
+                409, "Values missing",
+                "Missing values")
         except ValidationError:
-            return {'error': 'wrong attribute type'}, 400
+            return create_error_response(
+                400, "KeyError",
+                "Wrong attribute types")
  
  
 class MaterialFermiEntry(Resource):
  
     def get(self, id):
-        material_fermi = Material_Fermi.objects(id=id).first()
+        try:
+            material_fermi = Material_Fermi.objects(id=id).first()
+        except ValidationError:
+            return create_error_response(
+                403, "ValidationError",
+                "Not a valid objectId")
         if not material_fermi:
-            return {'error': 'data not found'}, 403
+            return create_error_response(
+                403, "Material Fermi is missing",
+                "There is no material fermi with the given id")
         else:
             body = MaterialFermiBuilder(id=str(material_fermi.id),
                                         fermi=material_fermi.fermi,
@@ -392,23 +444,31 @@ class MaterialFermiEntry(Resource):
                 id=record['volume id']).first()
             material = Material.objects(
                 structure_name=record['material']).first()
-            print("s")
         except KeyError:
-            return {'error': 'wrong format'}, 400
+            return create_error_response(
+                400, "KeyError",
+                "Wrong format")
+ 
         try:
             if not material_fermi:
-                return {'error': 'editable not foud'}, 403
+                return create_error_response(
+                    403, "Material Fermi is missing",
+                    "There is no material fermi with the given id")
             else:
                 Material_Fermi.objects(id=id).update(
                     set__fermi=record['fermi'], set__material=material.id, set__volume=material_volume.id)
                 return Response(status=204)
         except ValidationError:
-            return {'error': 'wrong attribute type'}, 400
+            return create_error_response(
+                400, "KeyError",
+                "Wrong attribute types")
  
     def delete(self, id):
         material_fermi = Material_Fermi.objects(id=id).first()
         if not material_fermi:
-            return {'error': 'deletable not found'}, 403
+            return create_error_response(
+                403, "Material Fermi is missing",
+                "There is no material fermi with the given id")
         else:
             Material_Fermi.objects(id=str(material_fermi.id)).delete()
             return Response(status=201)
