@@ -7,7 +7,6 @@ MASON = 'application/vnd.mason+json'
  
  
 class BasicTestCase(unittest.TestCase):
- 
     def test_home(self):
         tester = app.test_client(self)
         response = tester.get('/', content_type='html/text')
@@ -617,3 +616,4 @@ class BasicTestCase(unittest.TestCase):
  
 if __name__ == '__main__':
     unittest.main()
+    
