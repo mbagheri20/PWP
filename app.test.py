@@ -7,6 +7,7 @@ MASON = 'application/vnd.mason+json'
  
  
 class BasicTestCase(unittest.TestCase):
+ 
     def test_home(self):
         tester = app.test_client(self)
         response = tester.get('/', content_type='html/text')
@@ -562,6 +563,57 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 204)
         put_data['handle'] = "a"
         tester.put("/api/material/" + str(materials[0].structure_name) + "/", data=json.dumps(put_data))
+ 
+    def test_post_and_delete_material_fermi(self):
+        tester = app.test_client(self)
+        volumes = Material_Volume.objects().first()
+        post_data = {
+            "fermi": 123.0,
+            "material": str(volumes.material.structure_name),
+            "volume": str(volumes.id)
+        }
+        response = tester.post("/api/material_fermi/", data=json.dumps(post_data))
+        self.assertEqual(response.status_code, 201)
+        fermi = Material_Fermi.objects(fermi=123.0).all()
+        self.assertEqual(len(fermi), 1)
+        response = tester.delete("/api/material_fermi/" + str(fermi[0].id) + "/")
+        self.assertEqual(response.status_code, 201)
+        fermi = Material_Fermi.objects(fermi=123.0).all()
+        self.assertEqual(len(fermi), 0)
+ 
+    def test_post_and_delete_material_volume(self):
+        tester = app.test_client(self)
+        materials = Material.objects().first()
+        post_data = {
+            "size a": 101.0,
+            "size b": 202.0,
+            "size c": 303.0,
+            "dimension type": "3D",
+            "bonding length": 0.42,
+            "material": str(materials.structure_name)
+        }
+        response = tester.post("/api/material_volume/", data=json.dumps(post_data))
+        self.assertEqual(response.status_code, 201)
+        volume = Material_Volume.objects(size_c=303.0).all()
+        self.assertEqual(len(volume), 1)
+        response = tester.delete("/api/material_volume/" + str(volume[0].id) + "/")
+        self.assertEqual(response.status_code, 201)
+        volume = Material_Volume.objects(size_c=303.0).all()
+        self.assertEqual(len(volume), 0)
+ 
+    def test_post_and_delete_material(self):
+        tester = app.test_client(self)
+        post_data = {
+            "name": "test"
+        }
+        response = tester.post("/api/material/", data=json.dumps(post_data))
+        self.assertEqual(response.status_code, 201)
+        material = Material.objects(structure_name="test").all()
+        self.assertEqual(len(material), 1)
+        response = tester.delete("/api/material/" + str(material[0].structure_name) + "/")
+        self.assertEqual(response.status_code, 201)
+        material = Material.objects(structure_name="test").all()
+        self.assertEqual(len(material), 0)
  
 if __name__ == '__main__':
     unittest.main()
