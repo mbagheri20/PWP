@@ -90,6 +90,8 @@ class BasicTestCase(unittest.TestCase):
         }
         self.assertEqual(response.status_code, 200)
         self.assertEqual(resp, comparison_data)
+
+
  
     def test_get_material_entry(self):
         tester = app.test_client(self)
@@ -138,6 +140,10 @@ class BasicTestCase(unittest.TestCase):
         }
         self.assertEqual(response.status_code, 200)
         self.assertEqual(resp, comparison_data)
+
+        tester = app.test_client(self)
+        response = tester.get('/api/material/not_a_valid_material/', content_type=MASON)
+        self.assertEqual(response.status_code, 403)
  
     def test_get_material_volume(self):
         tester = app.test_client(self)
@@ -342,6 +348,13 @@ class BasicTestCase(unittest.TestCase):
         }
         self.assertEqual(response.status_code, 200)
         self.assertEqual(resp, comparison_data)
+
+        tester = app.test_client(self)
+        response = tester.get('/api/material_volume/not_a_valid_material/', content_type=MASON)
+        self.assertEqual(response.status_code, 403)
+
+        response = tester.get('/api/material/111111111111111111111111/', content_type=MASON)
+        self.assertEqual(response.status_code, 403)
  
     def test_get_material_fermi(self):
         tester = app.test_client(self)
@@ -516,6 +529,12 @@ class BasicTestCase(unittest.TestCase):
         }
         self.assertEqual(response.status_code, 200)
         self.assertEqual(resp, comparison_data)
+
+        response = tester.get('/api/material/not_a_valid_material/', content_type=MASON)
+        self.assertEqual(response.status_code, 403)
+
+        response = tester.get('/api/material/111111111111111111111111/', content_type=MASON)
+        self.assertEqual(response.status_code, 403)
  
 #  HTTPS PUTS
     def test_put_material_fermi_entry(self):
