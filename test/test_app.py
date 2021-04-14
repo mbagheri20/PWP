@@ -1,6 +1,7 @@
 import unittest
 from app import Material_Fermi, Material_Volume, Material, app
 import json
+import populatedb
 
 
 MASON = 'application/vnd.mason+json'
@@ -469,6 +470,8 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(resp, comparison_data)
 
+
+
     def test_get_material_fermi_entry(self):
         tester = app.test_client(self)
         fermies = Material_Fermi.objects().all()
@@ -640,6 +643,25 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 201)
         volume = Material_Volume.objects(size_c=303.0).all()
         self.assertEqual(len(volume), 0)
+        #test for when there is no size c
+        post_data = {
+            "size a": 101.0,
+            "size b": 222.0,
+            "dimension type": "3D",
+            "bonding length": 0.42,
+            "material": str(materials.structure_name)
+        }
+        response = tester.post("/api/material_volume/",
+                               data=json.dumps(post_data))
+        self.assertEqual(response.status_code, 201)
+        volume = Material_Volume.objects(size_b=222.0).all()
+        self.assertEqual(len(volume), 1)
+        response = tester.delete(
+            "/api/material_volume/" + str(volume[0].id) + "/")
+        self.assertEqual(response.status_code, 201)
+        volume = Material_Volume.objects(size_b=222.0).all()
+        self.assertEqual(len(volume), 0)
+
         post_data = {
             "size a": "fail",
             "size b": 202.0,
@@ -679,6 +701,133 @@ class BasicTestCase(unittest.TestCase):
         response = tester.post("/api/material/", data=json.dumps(post_data))
         self.assertEqual(response.status_code, 409)
 
+    def test_entry_point(self):
+        #Testing that /api/ works
+        tester = app.test_client(self)
+        response = tester.get('/api/', content_type=MASON)
+        resp = json.loads(response.data)
+        comparison_data = {}
+        comparison_data["@namespaces"] = {
+            "material_db": {"name": "/material/link-relations/"}
+        }
+        comparison_data["@controls"] = {
+            "material_db" + ":material-all": {
+            "href": "/api/material/",
+            "method": "GET",
+            "title": "Get all products"
+            }
+        }
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(resp, comparison_data)
 
+    def test_get_empty_material_db(self):
+        populatedb.drop_database()
+
+        tester = app.test_client(self)
+        response = tester.get('/api/material/', content_type=MASON)
+        resp = json.loads(response.data)['@error']['@messages'][0]
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(resp, "There is no material with the given handle")
+        populatedb.initialize()
+
+    def test_get_empty_material_volume_db(self):
+        populatedb.drop_database()
+
+        tester = app.test_client(self)
+        response = tester.get('/api/material_volume/', content_type=MASON)
+        resp = json.loads(response.data)['@error']['@messages'][0]
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(resp, "There is no material volume with the given id")
+        populatedb.initialize()
+
+    def test_get_empty_material_fermi_db(self):
+        populatedb.drop_database()
+
+        tester = app.test_client(self)
+        response = tester.get('/api/material_fermi/', content_type=MASON)
+        resp = json.loads(response.data)['@error']['@messages'][0]
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(resp, "There is no material fermi with the given id")
+        populatedb.initialize()
+
+    def test_get_error_profile(self):
+        tester = app.test_client(self)
+        response = tester.get("/profiles/errors/", content_type='html/text')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data, b"/profiles/errors/")
+
+    def test_post_material_no_json(self):
+        tester = app.test_client(self)
+        post_data = {"structure name" : "62"}
+        response = tester.post("/api/material/", data=post_data)
+        resp = json.loads(response.data)['@error']['@messages'][0]
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(resp, "JSON decoding has failed")
+        
+    def test_post_material_volume_no_json(self):
+        tester = app.test_client(self)
+        post_data = {"structure name" : "62"}
+        response = tester.post("/api/material_volume/", data=post_data)
+        resp = json.loads(response.data)['@error']['@messages'][0]
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(resp, "JSON decoding has failed")
+
+    def test_post_material_fermi_no_json(self):
+        tester = app.test_client(self)
+        post_data = {"structure name" : "62"}
+        response = tester.post("/api/material_fermi/", data=post_data)
+        resp = json.loads(response.data)['@error']['@messages'][0]
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(resp, "JSON decoding has failed")
+    
+    def test_put_material_no_json(self):
+        tester = app.test_client(self)
+        post_data = {"structure name" : "62"}
+        response = tester.put("/api/material/a/", data=post_data)
+        resp = json.loads(response.data)['@error']['@messages'][0]
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(resp, "JSON decoding has failed")
+        
+    def test_put_material_volume_no_json(self):
+        tester = app.test_client(self)
+        volumes = Material_Volume.objects().all()
+        put_data = {"structure name" : "62"}
+        response = tester.put("/api/material_volume/" +
+                              str(volumes[0].id) + "/", data=put_data)
+        resp = json.loads(response.data)['@error']['@messages'][0]
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(resp, "JSON decoding has failed")
+
+    def test_put_material_fermi_no_json(self):
+        tester = app.test_client(self)
+        fermies = Material_Fermi.objects().all()
+        put_data = {"structure name" : "62"}
+        response = tester.put(
+            "/api/material_fermi/" + str(fermies[0].id) + "/", data=put_data)
+        resp = json.loads(response.data)['@error']['@messages'][0]
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(resp, "JSON decoding has failed")
+
+    def test_delete_material_entry_wrong_handle(self):
+        tester = app.test_client(self)
+        response = tester.delete("/api/material/d/")
+        resp = json.loads(response.data)['@error']['@messages'][0]
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(resp, "There is no material with the given name")
+    
+    def test_delete_material_volume_entry_wrong_handle(self):
+        tester = app.test_client(self)
+        response = tester.delete("/api/material_volume/111111111111111111111111/")
+        resp = json.loads(response.data)['@error']['@messages'][0]
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(resp, "There is no material volume with the given id")
+
+    def test_delete_material_fermi_entry_wrong_handle(self):
+        tester = app.test_client(self)
+        response = tester.delete("/api/material_fermi/111111111111111111111111/")
+        resp = json.loads(response.data)['@error']['@messages'][0]
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(resp, "There is no material fermi with the given id")
+        
 if __name__ == '__main__':
     unittest.main()
