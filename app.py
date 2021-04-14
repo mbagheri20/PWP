@@ -137,10 +137,10 @@ class MaterialCollection(Resource):
     def post(self):
         try:
             record = json.loads(request.data)
-        except KeyError:
+        except ValueError:
             return create_error_response(
-                400, "KeyError",
-                "wrong format")
+                400, "ValueError",
+                "JSON decoding has failed")
         try:
             if Material.objects(structure_name=record['name']).first() is None:
                 material = Material(structure_name=record['name'])
@@ -153,10 +153,6 @@ class MaterialCollection(Resource):
         except ValidationError:
             return create_error_response(
                 400, "ValidationError",
-                "Wrong attribute types")
-        except KeyError:
-            return create_error_response(
-                400, "KeyError",
                 "Wrong attribute types")
 
 
@@ -181,10 +177,10 @@ class MaterialEntry(Resource):
     def put(self, handle):
         try:
             record = json.loads(request.data)
-        except KeyError:
+        except ValueError:
             return create_error_response(
-                400, "KeyError",
-                "wrong format")
+                400, "ValueError",
+                "JSON decoding has failed")
 
         material = Material.objects(structure_name=handle).first()
         if not material:
@@ -251,10 +247,10 @@ class MaterialVolumeCollection(Resource):
             record = json.loads(request.data)
             material = Material.objects(
                 structure_name=record['material']).first()
-        except KeyError:
+        except ValueError:
             return create_error_response(
-                400, "KeyError",
-                "wrong format")
+                400, "ValueError",
+                "JSON decoding has failed")
         try:
             if 'size c' in record:
                 material_volume = Material_Volume(
@@ -319,10 +315,10 @@ class MaterialVolumeEntry(Resource):
             material_volume = Material_Volume.objects(id=id).first()
             material = Material.objects(
                 structure_name=record['material']).first()
-        except KeyError:
+        except ValueError:
             return create_error_response(
-                400, "KeyError",
-                "Wrong format")
+                400, "ValueError",
+                "JSON decoding has failed")
 
         if not material_volume:
             return create_error_response(
@@ -387,10 +383,10 @@ class MaterialFermiCollection(Resource):
             material = Material.objects(
                 structure_name=record['material']).first()
             volume = Material_Volume.objects(id=record['volume']).first()
-        except KeyError:
+        except ValueError:
             return create_error_response(
-                400, "KeyError",
-                "Wrong format")
+                400, "ValueError",
+                "JSON decoding has failed")
 
         try:
             if material is not None and volume is not None:
@@ -445,11 +441,10 @@ class MaterialFermiEntry(Resource):
                 id=record['volume id']).first()
             material = Material.objects(
                 structure_name=record['material']).first()
-        except KeyError:
+        except ValueError:
             return create_error_response(
-                400, "KeyError",
-                "Wrong format")
-
+                400, "ValueError",
+                "JSON decoding has failed")
         try:
             if not material_fermi:
                 return create_error_response(
