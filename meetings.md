@@ -68,23 +68,9 @@ if not material_volume not needed
 make a correction in fermi entry and fermi get entry test
 
 
-
 ### Comments from staff
 *ONLY USED BY COURSE STAFF: Additional comments from the course staff*
 
-## Midterm meeting
-* **DATE:**
-* **ASSISTANTS:**
-
-### Minutes
-*Summary of what was discussed during the meeting*
-
-### Action points
-*List here the actions points discussed with assistants*
-
-
-### Comments from staff
-*ONLY USED BY COURSE STAFF: Additional comments from the course staff*
 
 ## Final meeting
 * **DATE:**
