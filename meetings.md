@@ -36,28 +36,37 @@ Fix the fermi table.
 *ONLY USED BY COURSE STAFF: Additional comments from the course staff*
 
 ## Meeting 3.
-* **DATE:**
-* **ASSISTANTS:**
+* **DATE:** 19.3.2021
+* **ASSISTANTS:** Mika Oja
 
 ### Minutes
-*Summary of what was discussed during the meeting*
+We discussed about our api design and Mika gave us some advice about apiary and we found some errors in apiary that we have to correct them.
 
 ### Action points
-*List here the actions points discussed with assistants*
+add some / on  Resource url
+add connection/input arrow for other collection and fermi collection
+fix syntax Error in apiary such as : remove list sign [] from respeonses and put  in body of 201 and edit in all of them
+put names on table
 
 
 ### Comments from staff
 *ONLY USED BY COURSE STAFF: Additional comments from the course staff*
 
 ## Meeting 4.
-* **DATE:**
-* **ASSISTANTS:**
+* **DATE:** 16.4.2021
+* **ASSISTANTS:** Mika Oja
 
 ### Minutes
-*Summary of what was discussed during the meeting*
+We discuss about software and testing. We execute the software also our tester and Miko give us some advice about how to improve our testing sotware. Also we have to make correction in our fermi entry testing and documenting.
 
 ### Action points
-*List here the actions points discussed with assistants*
+
+source for mason builder 
+leave a link for codes that gave from somewhere else, 
+documentation for the code
+if not material_volume not needed
+make a correction in fermi entry and fermi get entry test
+
 
 
 ### Comments from staff
