@@ -38,9 +38,11 @@ Initialize the database for testing and usage:
 After setting up database now you can test database, the file app.test.py contains the test cases for database testing. Test cases can be executed by typing python command
 
 if you have used database before tests, reset the data to run tests successfully
+
 `python populatedb.py`
 
 Then run the tests
+
 `coverage run -m unittest discover -v`
 
 After running tests you can create report from them
@@ -48,7 +50,7 @@ on terminal
 `coverage report`
 or by html report
 `coverage html`
-#two ways to see test report
+
 
 
 
