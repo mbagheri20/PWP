@@ -29,21 +29,26 @@ Then create a new mongo container.
 
 `$ docker run -d -p 27017:27017 --name mongo mongo:4.2`
 
-Download mongodb database tools from 
-https://www.mongodb.com/try/download/database-tools
-with following command: you can populate the database. (make sure you have mongo docker container running)
+After your mongo container runs correctly
+Initialize the database for testing and usage:
+`python populatedb.py`
 
-`mongorestore.exe -d db --drop c:{path to repository}\PWP-2021-MJL\tests\mongodump\db`
-
-To backup a ready database you can use.
-`mongodump.exe -d db`
 
 ## Testing Datbase
 After setting up database now you can test database, the file app.test.py contains the test cases for database testing. Test cases can be executed by typing python command
 
-`python app.test.py`
+if you have used database before tests, reset the data to run tests successfully
+`python populatedb.py`
 
-After executing that command you can check all details in command window about test cases.
+Then run the tests
+`coverage run -m unittest discover -v`
+
+After running tests you can create report from them
+on terminal
+`coverage report`
+or by html report
+`coverage html`
+#two ways to see test report
 
 
 
