@@ -14,7 +14,7 @@ state={
     "previous text": None
 }
  
-material = {
+material = {    
     "name": None
 }
  
@@ -39,13 +39,14 @@ def add_material():
     state["nappi"] = ui.luo_nappi(state["oikea"], "Submit", send_post_material)
  
 def send_post_material():
-    #try:
-    material["name"] = ui.lue_kentan_sisalto(state["write box"])
-    resp = requests.post(SERVER_URL + "/api/material/", data=json.dumps(material))
-    printable = "Status code {}, header {}\nBody {}".format(resp.status_code, resp.headers, resp.text)
-    ui.kirjoita_tekstilaatikkoon(state["text box"], printable, True)
-    #except:
-    #    ui.kirjoita_tekstilaatikkoon(state["text box"], "Something went wrong", True)
+    try:
+        text = ui.lue_kentan_sisalto(state["write box"])
+        material["name"] = text.strip()
+        resp = requests.post(SERVER_URL + "/api/material/", data=json.dumps(material))
+        printable = "Status code {}, header {}\nBody {}".format(resp.status_code, resp.headers, resp.text)
+        ui.kirjoita_tekstilaatikkoon(state["text box"], printable, True)
+    except:
+        ui.kirjoita_tekstilaatikkoon(state["text box"], "Something went wrong", True)
  
  
 def add_material_volume():
@@ -57,18 +58,18 @@ def add_material_volume():
 def send_post_material_volume():
     text = ui.lue_kentan_sisalto(state["write box"])
     text = text.split(",")
-    #try:
-    material_volume["size a"] = text[0]
-    material_volume["size b"] = text[1]
-    material_volume["size c"] = text[2]
-    material_volume["dimension type"] = text[3]
-    material_volume["bonding length"] = text[4]
-    material_volume["material"] = text[5]
-    resp = requests.post(SERVER_URL + "/api/material_volume/", data=json.dumps(material_volume))
-    printable = "Status code {}, header {}\nBody {}".format(resp.status_code, resp.headers, resp.text)
-    ui.kirjoita_tekstilaatikkoon(state["text box"], printable, True)
-    #except:
-    #    ui.kirjoita_tekstilaatikkoon(state["text box"], "Something went wrong", True)
+    try:
+        material_volume["size a"] = text[0].strip()
+        material_volume["size b"] = text[1].strip()
+        material_volume["size c"] = text[2].strip()
+        material_volume["dimension type"] = text[3].strip()
+        material_volume["bonding length"] = text[4].strip()
+        material_volume["material"] = text[5].strip()
+        resp = requests.post(SERVER_URL + "/api/material_volume/", data=json.dumps(material_volume))
+        printable = "Status code {}, header {}\nBody {}".format(resp.status_code, resp.headers, resp.text)
+        ui.kirjoita_tekstilaatikkoon(state["text box"], printable, True)
+    except:
+        ui.kirjoita_tekstilaatikkoon(state["text box"], "Something went wrong", True)
  
 def add_material_fermi():
     state["nappi"].destroy()
@@ -79,15 +80,15 @@ def add_material_fermi():
 def send_post_material_fermi():
     text = ui.lue_kentan_sisalto(state["write box"])
     text = text.split(",")
-    #try:
-    material_fermi["fermi"] = text[0]
-    material_fermi["material"] = text[1]
-    material_fermi["volume"] = text[2]
-    resp = requests.post(SERVER_URL + "/api/material_fermi/", data=json.dumps(material_fermi))
-    printable = "Status code {}, header {}\nBody {}".format(resp.status_code, resp.headers, resp.text)
-    ui.kirjoita_tekstilaatikkoon(state["text box"], printable, True)
-    #except:
-    #    ui.kirjoita_tekstilaatikkoon(state["text box"], "Something went wrong", True)
+    try:
+        material_fermi["fermi"] = text[0].strip()
+        material_fermi["material"] = text[1].strip()
+        material_fermi["volume"] = text[2].strip()
+        resp = requests.post(SERVER_URL + "/api/material_fermi/", data=json.dumps(material_fermi))
+        printable = "Status code {}, header {}\nBody {}".format(resp.status_code, resp.headers, resp.text)
+        ui.kirjoita_tekstilaatikkoon(state["text box"], printable, True)
+    except:
+        ui.kirjoita_tekstilaatikkoon(state["text box"], "Something went wrong", True)
  
 def search_material():
     state["nappi"].destroy()
@@ -118,13 +119,14 @@ def search_material_indi():
     state["nappi"] = ui.luo_nappi(state["oikea"], "Submit", send_get_material_indi)
  
 def send_get_material_indi():
-    #try:
-    text = ui.lue_kentan_sisalto(state["write box"])
-    resp = requests.get(SERVER_URL + "/api/material/" + text + "/")
-    printable = "Status code {}, header {}\nBody {}".format(resp.status_code, resp.headers, resp.text)
-    ui.kirjoita_tekstilaatikkoon(state["text box"], printable, True)
-    #except:
-    #    ui.kirjoita_tekstilaatikkoon(state["text box"], "Something went wrong", True)
+    try:
+        text = ui.lue_kentan_sisalto(state["write box"])
+        text = text.strip()
+        resp = requests.get(SERVER_URL + "/api/material/" + text + "/")
+        printable = "Status code {}, header {}\nBody {}".format(resp.status_code, resp.headers, resp.text)
+        ui.kirjoita_tekstilaatikkoon(state["text box"], printable, True)
+    except:
+        ui.kirjoita_tekstilaatikkoon(state["text box"], "Something went wrong", True)
  
 def search_material_volume_indi():
     state["nappi"].destroy() 
@@ -132,13 +134,14 @@ def search_material_volume_indi():
     state["nappi"] = ui.luo_nappi(state["oikea"], "Submit", send_get_material_volume_indi)
  
 def send_get_material_volume_indi():
-    #try: 
-    text = ui.lue_kentan_sisalto(state["write box"])
-    resp = requests.get(SERVER_URL + "/api/material_volume/" + text + "/")
-    printable = "Status code {}, header {}\nBody {}".format(resp.status_code, resp.headers, resp.text)
-    ui.kirjoita_tekstilaatikkoon(state["text box"], printable, True)
-    #except:
-    #    ui.kirjoita_tekstilaatikkoon(state["text box"], "Something went wrong", True)
+    try: 
+        text = ui.lue_kentan_sisalto(state["write box"])
+        text = text.strip()
+        resp = requests.get(SERVER_URL + "/api/material_volume/" + text + "/")
+        printable = "Status code {}, header {}\nBody {}".format(resp.status_code, resp.headers, resp.text)
+        ui.kirjoita_tekstilaatikkoon(state["text box"], printable, True)
+    except:
+        ui.kirjoita_tekstilaatikkoon(state["text box"], "Something went wrong", True)
  
 def search_material_fermi_indi():
     state["nappi"].destroy()
@@ -147,13 +150,14 @@ def search_material_fermi_indi():
     state["nappi"] = ui.luo_nappi(state["oikea"], "Submit", send_get_material_fermi_indi)
  
 def send_get_material_fermi_indi():
-    #try:
-    text = ui.lue_kentan_sisalto(state["write box"])
-    resp = requests.get(SERVER_URL + "/api/material_fermi/" + text + "/")
-    printable = "Status code {}, header {}\nBody {}".format(resp.status_code, resp.headers, resp.text)
-    ui.kirjoita_tekstilaatikkoon(state["text box"], printable, True)
-    #except:
-    #    ui.kirjoita_tekstilaatikkoon(state["text box"], "Something went wrong", True)
+    try:
+        text = ui.lue_kentan_sisalto(state["write box"])
+        text = text.strip()
+        resp = requests.get(SERVER_URL + "/api/material_fermi/" + text + "/")
+        printable = "Status code {}, header {}\nBody {}".format(resp.status_code, resp.headers, resp.text)
+        ui.kirjoita_tekstilaatikkoon(state["text box"], printable, True)
+    except:
+        ui.kirjoita_tekstilaatikkoon(state["text box"], "Something went wrong", True)
  
 def edit_material():
     state["nappi"].destroy()
@@ -163,15 +167,15 @@ def edit_material():
     state["nappi"] = ui.luo_nappi(state["oikea"], "Submit", send_put_material)
  
 def send_put_material():
-    #try:
-    text = ui.lue_kentan_sisalto(state["write box"])
-    text = text.split(",")
-    data = {"handle": text[1]}
-    resp = requests.put(SERVER_URL + "/api/material/" + text[0] + "/", data=json.dumps(data))
-    printable = "Status code {}, header {}\nBody {}".format(resp.status_code, resp.headers, resp.text)
-    ui.kirjoita_tekstilaatikkoon(state["text box"], printable, True)
-    #except:
-    #    ui.kirjoita_tekstilaatikkoon(state["text box"], "Something went wrong", True)
+    try:
+        text = ui.lue_kentan_sisalto(state["write box"])
+        text = text.split(",")
+        data = {"handle": text[1].strip()}
+        resp = requests.put(SERVER_URL + "/api/material/" + text[0].strip() + "/", data=json.dumps(data))
+        printable = "Status code {}, header {}\nBody {}".format(resp.status_code, resp.headers, resp.text)
+        ui.kirjoita_tekstilaatikkoon(state["text box"], printable, True)
+    except:
+        ui.kirjoita_tekstilaatikkoon(state["text box"], "Something went wrong", True)
  
 def edit_material_volume():
     state["nappi"].destroy()
@@ -181,42 +185,42 @@ def edit_material_volume():
     state["nappi"] = ui.luo_nappi(state["oikea"], "Submit", send_put_material_volume)
  
 def send_put_material_volume():
-    #try:
-    text = ui.lue_kentan_sisalto(state["write box"])
-    text = text.split(",")
-    material_volume["size a"] = text[1]
-    material_volume["size b"] = text[2]
-    material_volume["size c"] = text[3]
-    material_volume["dimension type"] = text[4]
-    material_volume["bonding length"] = text[5]
-    material_volume["material"] = text[6]
-    resp = requests.put(SERVER_URL + "/api/material_volume/" + text[0] + "/", data=json.dumps(material_volume))
-    printable = "Status code {}, header {}\nBody {}".format(resp.status_code, resp.headers, resp.text)
-    ui.kirjoita_tekstilaatikkoon(state["text box"], printable, True)
-    #except:
-    #    ui.kirjoita_tekstilaatikkoon(state["text box"], "Something went wrong", True)
+    try:
+        text = ui.lue_kentan_sisalto(state["write box"])
+        text = text.split(",")
+        material_volume["size a"] = text[1].strip()
+        material_volume["size b"] = text[2].strip()
+        material_volume["size c"] = text[3].strip()
+        material_volume["dimension type"] = text[4].strip()
+        material_volume["bonding length"] = text[5].strip()
+        material_volume["material"] = text[6].strip()
+        resp = requests.put(SERVER_URL + "/api/material_volume/" + text[0] + "/", data=json.dumps(material_volume))
+        printable = "Status code {}, header {}\nBody {}".format(resp.status_code, resp.headers, resp.text)
+        ui.kirjoita_tekstilaatikkoon(state["text box"], printable, True)
+    except:
+        ui.kirjoita_tekstilaatikkoon(state["text box"], "Something went wrong", True)
  
 def edit_material_fermi():
     state["nappi"].destroy()
  
     ui.kirjoita_tekstilaatikkoon(state["text box"], "Enter material fermi id that you want to edit, and after that each variable seperated by a comma", True)
-    ui.kirjoita_tekstilaatikkoon(state["text box"], "fermi, material name, material volume id")
+    ui.kirjoita_tekstilaatikkoon(state["text box"], "fermi id, fermi, material name, material volume id")
     state["nappi"] = ui.luo_nappi(state["oikea"], "Submit", send_put_material_fermi)
  
 def send_put_material_fermi():
-    #try:
-    text = ui.lue_kentan_sisalto(state["write box"])
-    text = text.split(",")
-    data = {
-        "fermi": text[1],
-        "material": text[2],
-        "volume id": text[3]
-    }
-    resp = requests.put(SERVER_URL + "/api/material_fermi/" + text[0] + "/", data=json.dumps(data))
-    printable = "Status code {}, header {}\nBody {}".format(resp.status_code, resp.headers, resp.text)
-    ui.kirjoita_tekstilaatikkoon(state["text box"], printable, True)
-    #except:
-    #    ui.kirjoita_tekstilaatikkoon(state["text box"], "Something went wrong", True)
+    try:
+        text = ui.lue_kentan_sisalto(state["write box"])
+        text = text.split(",")
+        data = {
+            "fermi": text[1].strip(),
+            "material": text[2].strip(),
+            "volume id": text[3].strip()
+        }
+        resp = requests.put(SERVER_URL + "/api/material_fermi/" + text[0] + "/", data=json.dumps(data))
+        printable = "Status code {}, header {}\nBody {}".format(resp.status_code, resp.headers, resp.text)
+        ui.kirjoita_tekstilaatikkoon(state["text box"], printable, True)
+    except:
+        ui.kirjoita_tekstilaatikkoon(state["text box"], "Something went wrong", True)
  
 def delete_material():
     state["nappi"].destroy()
@@ -225,13 +229,14 @@ def delete_material():
     state["nappi"] = ui.luo_nappi(state["oikea"], "Submit", send_delete_material)
  
 def send_delete_material():
-    #try:
-    text = ui.lue_kentan_sisalto(state["write box"])
-    resp = requests.delete(SERVER_URL + "/api/material/" + text + "/")
-    printable = "Status code {}, header {}\nBody {}".format(resp.status_code, resp.headers, resp.text)
-    ui.kirjoita_tekstilaatikkoon(state["text box"], printable, True)
-    #except:
-    #    ui.kirjoita_tekstilaatikkoon(state["text box"], "Something went wrong", True)
+    try:
+        text = ui.lue_kentan_sisalto(state["write box"])
+        text = text.strip()
+        resp = requests.delete(SERVER_URL + "/api/material/" + text + "/")
+        printable = "Status code {}, header {}\nBody {}".format(resp.status_code, resp.headers, resp.text)
+        ui.kirjoita_tekstilaatikkoon(state["text box"], printable, True)
+    except:
+        ui.kirjoita_tekstilaatikkoon(state["text box"], "Something went wrong", True)
  
 def delete_material_volume():
     state["nappi"].destroy()
@@ -240,13 +245,14 @@ def delete_material_volume():
     state["nappi"] = ui.luo_nappi(state["oikea"], "Submit", send_delete_material_volume)
  
 def send_delete_material_volume():
-    #try:
-    text = ui.lue_kentan_sisalto(state["write box"])
-    resp = requests.delete(SERVER_URL + "/api/material_volume/" + text + "/")
-    printable = "Status code {}, header {}\nBody {}".format(resp.status_code, resp.headers, resp.text)
-    ui.kirjoita_tekstilaatikkoon(state["text box"], printable, True)
-    #except:
-    #    ui.kirjoita_tekstilaatikkoon(state["text box"], "Something went wrong", True)
+    try:
+        text = ui.lue_kentan_sisalto(state["write box"])
+        text = text.strip()
+        resp = requests.delete(SERVER_URL + "/api/material_volume/" + text + "/")
+        printable = "Status code {}, header {}\nBody {}".format(resp.status_code, resp.headers, resp.text)
+        ui.kirjoita_tekstilaatikkoon(state["text box"], printable, True)
+    except:
+        ui.kirjoita_tekstilaatikkoon(state["text box"], "Something went wrong", True)
  
 def delete_material_fermi():
     state["nappi"].destroy()
@@ -255,13 +261,14 @@ def delete_material_fermi():
     state["nappi"] = ui.luo_nappi(state["oikea"], "Submit", send_delete_material_fermi)
  
 def send_delete_material_fermi():
-    #try:
-    text = ui.lue_kentan_sisalto(state["write box"])
-    resp = requests.delete(SERVER_URL + "/api/material_fermi/" + text + "/")
-    printable = "Status code {}, header {}\nBody {}".format(resp.status_code, resp.headers, resp.text)
-    ui.kirjoita_tekstilaatikkoon(state["text box"], printable, True)
-    #except:
-    #    ui.kirjoita_tekstilaatikkoon(state["text box"], "Something went wrong", True)
+    try:
+        text = ui.lue_kentan_sisalto(state["write box"])
+        text = text.strip()
+        resp = requests.delete(SERVER_URL + "/api/material_fermi/" + text + "/")
+        printable = "Status code {}, header {}\nBody {}".format(resp.status_code, resp.headers, resp.text)
+        ui.kirjoita_tekstilaatikkoon(state["text box"], printable, True)
+    except:
+        ui.kirjoita_tekstilaatikkoon(state["text box"], "Something went wrong", True)
  
 def empty():
     pass
