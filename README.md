@@ -51,7 +51,6 @@ on terminal
 or by html report
 `coverage html`
 
-
-
-
+## Client
+To use the client, run ``python client.py`` in the root. On the right side you have buttons for adding, searchinng, editing and deleting. Each button then shows instructions on the text box on the right side. A user can type into a box between the instruction text box and submit button.
 
