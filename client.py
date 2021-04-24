@@ -33,7 +33,6 @@ material_fermi = {
     "volume": None
 }
  
- 
 def add_material():
     state["nappi"].destroy()
     ui.kirjoita_tekstilaatikkoon(state["text box"], "Enter name below", True)
@@ -74,7 +73,7 @@ def send_post_material_volume():
 def add_material_fermi():
     state["nappi"].destroy()
     ui.kirjoita_tekstilaatikkoon(state["text box"], "Enter material fermi information below separated by commas", True)
-    ui.kirjoita_tekstilaatikkoon(state["text box"], "id, fermi, material name, material volume id")
+    ui.kirjoita_tekstilaatikkoon(state["text box"], "fermi, material name, material volume id")
     state["nappi"] = ui.luo_nappi(state["oikea"], "Submit", send_post_material_fermi)
  
 def send_post_material_fermi():
@@ -84,24 +83,30 @@ def send_post_material_fermi():
     material_fermi["fermi"] = text[0]
     material_fermi["material"] = text[1]
     material_fermi["volume"] = text[2]
-    resp = requests.post(SERVER_URL + "/api/material_volume/", data=json.dumps(material_volume))
+    resp = requests.post(SERVER_URL + "/api/material_fermi/", data=json.dumps(material_fermi))
     printable = "Status code {}, header {}\nBody {}".format(resp.status_code, resp.headers, resp.text)
     ui.kirjoita_tekstilaatikkoon(state["text box"], printable, True)
     #except:
     #    ui.kirjoita_tekstilaatikkoon(state["text box"], "Something went wrong", True)
  
 def search_material():
+    state["nappi"].destroy()
+    state["nappi"] = ui.luo_nappi(state["oikea"], "Submit", empty)
     resp = requests.get(SERVER_URL + "/api/material/")
     printable = "Status code {}, header {}\nBody {}".format(resp.status_code, resp.headers, resp.text)
     ui.kirjoita_tekstilaatikkoon(state["text box"], printable, True)
  
 def search_material_volume():
+    state["nappi"].destroy()
+    state["nappi"] = ui.luo_nappi(state["oikea"], "Submit", empty)
     resp = requests.get(SERVER_URL + "/api/material_volume/")
     printable = "Status code {}, header {}\nBody {}".format(resp.status_code, resp.headers, resp.text)
     ui.kirjoita_tekstilaatikkoon(state["text box"], printable, True)
  
  
 def search_material_fermi():
+    state["nappi"].destroy()
+    state["nappi"] = ui.luo_nappi(state["oikea"], "Submit", empty)
     resp = requests.get(SERVER_URL + "/api/material_fermi/")
     printable = "Status code {}, header {}\nBody {}".format(resp.status_code, resp.headers, resp.text)
     ui.kirjoita_tekstilaatikkoon(state["text box"], printable, True)
@@ -161,8 +166,8 @@ def send_put_material():
     #try:
     text = ui.lue_kentan_sisalto(state["write box"])
     text = text.split(",")
-    material["name"] = text[1]
-    resp = requests.put(SERVER_URL + "/api/material/" + text[0], data=json.dumps(material))
+    data = {"handle": text[1]}
+    resp = requests.put(SERVER_URL + "/api/material/" + text[0] + "/", data=json.dumps(data))
     printable = "Status code {}, header {}\nBody {}".format(resp.status_code, resp.headers, resp.text)
     ui.kirjoita_tekstilaatikkoon(state["text box"], printable, True)
     #except:
@@ -185,7 +190,7 @@ def send_put_material_volume():
     material_volume["dimension type"] = text[4]
     material_volume["bonding length"] = text[5]
     material_volume["material"] = text[6]
-    resp = requests.post(SERVER_URL + "/api/material_volume/" + text[0], data=json.dumps(material_volume))
+    resp = requests.put(SERVER_URL + "/api/material_volume/" + text[0] + "/", data=json.dumps(material_volume))
     printable = "Status code {}, header {}\nBody {}".format(resp.status_code, resp.headers, resp.text)
     ui.kirjoita_tekstilaatikkoon(state["text box"], printable, True)
     #except:
@@ -195,17 +200,19 @@ def edit_material_fermi():
     state["nappi"].destroy()
  
     ui.kirjoita_tekstilaatikkoon(state["text box"], "Enter material fermi id that you want to edit, and after that each variable seperated by a comma", True)
+    ui.kirjoita_tekstilaatikkoon(state["text box"], "fermi, material name, material volume id")
     state["nappi"] = ui.luo_nappi(state["oikea"], "Submit", send_put_material_fermi)
  
 def send_put_material_fermi():
     #try:
     text = ui.lue_kentan_sisalto(state["write box"])
     text = text.split(",")
-    volume_id = text[0]
-    material_fermi["fermi"] = text[0]
-    material_fermi["material"] = text[1]
-    material_fermi["volume"] = text[2]
-    resp = requests.post(SERVER_URL + "/api/material_fermi/" + text[0], data=json.dumps(material_fermi))
+    data = {
+        "fermi": text[1],
+        "material": text[2],
+        "volume id": text[3]
+    }
+    resp = requests.put(SERVER_URL + "/api/material_fermi/" + text[0] + "/", data=json.dumps(data))
     printable = "Status code {}, header {}\nBody {}".format(resp.status_code, resp.headers, resp.text)
     ui.kirjoita_tekstilaatikkoon(state["text box"], printable, True)
     #except:
@@ -220,7 +227,7 @@ def delete_material():
 def send_delete_material():
     #try:
     text = ui.lue_kentan_sisalto(state["write box"])
-    resp = requests.post(SERVER_URL + "/api/material/" + text, data=json.dumps(material))
+    resp = requests.delete(SERVER_URL + "/api/material/" + text + "/")
     printable = "Status code {}, header {}\nBody {}".format(resp.status_code, resp.headers, resp.text)
     ui.kirjoita_tekstilaatikkoon(state["text box"], printable, True)
     #except:
@@ -235,7 +242,7 @@ def delete_material_volume():
 def send_delete_material_volume():
     #try:
     text = ui.lue_kentan_sisalto(state["write box"])
-    resp = requests.post(SERVER_URL + "/api/material_volume/" + text, data=json.dumps(material))
+    resp = requests.delete(SERVER_URL + "/api/material_volume/" + text + "/")
     printable = "Status code {}, header {}\nBody {}".format(resp.status_code, resp.headers, resp.text)
     ui.kirjoita_tekstilaatikkoon(state["text box"], printable, True)
     #except:
@@ -250,7 +257,7 @@ def delete_material_fermi():
 def send_delete_material_fermi():
     #try:
     text = ui.lue_kentan_sisalto(state["write box"])
-    resp = requests.post(SERVER_URL + "/api/material_fermi/" + text, data=json.dumps(material))
+    resp = requests.delete(SERVER_URL + "/api/material_fermi/" + text + "/")
     printable = "Status code {}, header {}\nBody {}".format(resp.status_code, resp.headers, resp.text)
     ui.kirjoita_tekstilaatikkoon(state["text box"], printable, True)
     #except:
