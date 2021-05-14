@@ -10,5 +10,5 @@ mongo-tools
 wheel
 flask-mongoengine
 coverage
-tkinter
+tk
 matplotlib
