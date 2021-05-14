@@ -21,7 +21,7 @@ All dependencies can be installed using `pip install` command followed by the na
 
 after installation run the app.py with Flask with this command:
 
-`flask app.py`
+`flask run app.py`
 
 for a new container install docker desktop:
 https://www.docker.com/products/docker-desktop
